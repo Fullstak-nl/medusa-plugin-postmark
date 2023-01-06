@@ -1,12 +1,11 @@
 {
    "name": "medusa-plugin-ses",
-   "version": "1.0.0",
+   "version": "1.0.1",
    "description": "AWS SES transactional emails based on medusa-plugin-sendgrid by Oliver Juhl",
    "main": "index.js",
    "repository": {
       "type": "git",
-      "url": "https://github.com/medusajs/medusa",
-      "directory": "packages/medusa-plugin-sendgrid"
+      "url": "https://github.com/pevey/medusa-plugin-ses"
    },
    "author": "Lacey Pevey",
    "license": "MIT",
