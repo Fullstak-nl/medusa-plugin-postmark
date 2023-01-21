@@ -1,6 +1,6 @@
 {
    "name": "medusa-plugin-postmark",
-   "version": "1.1.0",
+   "version": "1.1.1",
    "description": "Postmark notification plugin for MedusaJS",
    "main": "index.js",
    "repository": {
@@ -26,7 +26,7 @@
       "postmark": "^3.0.15"
    },
    "scripts": {
-      "build": "babel src -d .",
+      "build": "babel src --out-dir . --ignore '**/__tests__','**/__mocks__'",
       "prepare": "cross-env NODE_ENV=production yarn run build",
       "watch": "babel -w src --out-dir . --ignore **/__tests__",
       "test": "jest --passWithNoTests"
@@ -41,7 +41,6 @@
       "medusa-core-utils": "^1.1.37",
       "medusa-test-utils": "^1.1.37"
    },
-   "gitHead": "3bbd1e8507e00bc471de6ae3c30207999a4a4011",
    "keywords": [
       "medusa-plugin",
       "medusa-plugin-notification"
