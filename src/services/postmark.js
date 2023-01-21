@@ -2,7 +2,7 @@ import { humanizeAmount, zeroDecimalCurrencies } from "medusa-core-utils"
 import { NotificationService } from "medusa-interfaces"
 import * as postmark from "postmark"
 
-class postmarkService extends NotificationService {
+class PostmarkService extends NotificationService {
   static identifier = "postmark"
 
   /**
@@ -460,4 +460,4 @@ class postmarkService extends NotificationService {
   }
 }
 
-export default postmarkService
+export default PostmarkService
