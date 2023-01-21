@@ -35,6 +35,13 @@ Enable in your medusa-config.js file similar to other plugins:
             user: {
                 password_reset: process.env.POSTMARK_USER_PASSWORD_RESET || null,
             }
+          },
+          default_data: {
+            // ... default data to be passed to the email template
+            product_url: process.env.POSTMARK_PRODUCT_URL || '',
+            product_name: process.env.POSTMARK_PRODUCT_NAME || '',
+            company_name: process.env.POSTMARK_COMPANY_NAME || '',
+            company_address: process.env.POSTMARK_COMPANY_ADDRESS || '',
           }
         }
       }

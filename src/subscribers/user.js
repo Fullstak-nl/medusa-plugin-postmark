@@ -1,7 +1,6 @@
 class UserSubscriber {
-   constructor({ postmarkService, eventBusService }) {
+   constructor({ eventBusService, postmarkService }) {
      this.postmarkService_ = postmarkService
-
      this.eventBus_ = eventBusService
 
      this.eventBus_.subscribe("user.password_reset", async (data) => {

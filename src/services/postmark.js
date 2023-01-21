@@ -55,15 +55,20 @@ class PostmarkService extends NotificationService {
   }
 
   async sendNotification(event, eventData, attachmentGenerator) {
+    let group = undefined;
+    let action = undefined;
     try {
-      const [object, action] = event.split(".",2)
-      if(typeof object === "undefined" || typeof action === "undefined" || this.options_[object] === undefined || this.options_[object][action] === undefined)
+      const event_ = event.split(".",2)
+      group = event_[0]
+      action = event_[1]
+      if(typeof group === "undefined" || typeof action === "undefined" || this.options_.events[group] === undefined || this.options_.events[group][action] === undefined)
         return false
     } catch (err) {
+      console.error(err)
       return false
     }
 
-    let templateId = this.options_[object][action]
+    let templateId = this.options_.events[group][action]
     const data = await this.fetchData(event, eventData, attachmentGenerator)
     // Attachments aren't supported by yet
     /*const attachments = await this.fetchAttachments(
@@ -79,7 +84,10 @@ class PostmarkService extends NotificationService {
       From: this.options_.from,
       To: data.email,
       TemplateId: templateId,
-      TemplateModel: JSON.stringify(data)
+      TemplateModel: {
+        ...data,
+        ...this.options_.default_data
+      }
     }
 
     /*if (attachments?.length) {
@@ -95,9 +103,9 @@ class PostmarkService extends NotificationService {
       })
     }*/
 
-    console.log(sendOptions)
+    //console.log(sendOptions)
 
-    return await this.client_.sendMail(sendOptions)
+    return await this.client_.sendEmailWithTemplate(sendOptions)
     .then(() => ({ to: sendOptions.To, status: 'sent', data: sendOptions }))
     .catch((error) => {
       console.error(error)
@@ -126,12 +134,27 @@ class PostmarkService extends NotificationService {
       }
     })*/
 
-    return await this.client_.sendMail(sendOptions)
+    return await this.client_.sendEmailWithTemplate(sendOptions)
         .then(() => ({ to: sendOptions.To, status: 'sent', data: sendOptions }))
         .catch((error) => {
           console.error(error)
           return { to: sendOptions.To, status: 'failed', data: sendOptions }
         })
+  }
+
+  async sendMail(options) {
+    try{
+      this.client_.sendEmailWithTemplate({
+        ...options,
+        TemplateModel: {
+          ...options.TemplateModel,
+          ...this.options_.default_data
+        }
+      })
+    }catch (err) {
+      console.log(err)
+      throw err
+    }
   }
 
   async orderShipmentCreatedData({ id, fulfillment_id }, attachmentGenerator) {
