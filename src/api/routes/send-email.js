@@ -3,7 +3,6 @@ import { Validator, MedusaError } from "medusa-core-utils"
 export default async (req, res) => {
   const schema = Validator.object().keys({
     template_id: Validator.string().required(),
-    from: Validator.string().required(),
     to: Validator.string().required(),
     data: Validator.object().optional().default({}),
   })
@@ -14,10 +13,9 @@ export default async (req, res) => {
   }
 
   try {
-    const sesService = req.scope.resolve("sesService")
-    await sesService.sendEmail(
+    const postmarkService = req.scope.resolve("postmarkService")
+    await postmarkService.sendEmail(
       value.template_id,
-      value.from,
       value.to,
       value.data
     )

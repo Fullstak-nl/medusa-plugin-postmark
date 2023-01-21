@@ -1,11 +1,11 @@
 class UserSubscriber {
-   constructor({ sesService, eventBusService }) {
-     this.sesService_ = sesService
- 
+   constructor({ postmarkService, eventBusService }) {
+     this.postmarkService_ = postmarkService
+
      this.eventBus_ = eventBusService
- 
+
      this.eventBus_.subscribe("user.password_reset", async (data) => {
-       await this.sesService_.sendNotification(
+       await this.postmarkService_.sendNotification(
          "user.password_reset",
          data,
          null
@@ -13,5 +13,5 @@ class UserSubscriber {
      })
    }
  }
- 
+
  export default UserSubscriber

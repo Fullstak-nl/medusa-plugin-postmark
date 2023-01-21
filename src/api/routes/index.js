@@ -5,7 +5,7 @@ import middlewares from "../middleware"
 const route = Router()
 
 export default (app) => {
-  app.use("/ses", route)
+  app.use("/postmark", route)
 
   route.post(
     "/send",

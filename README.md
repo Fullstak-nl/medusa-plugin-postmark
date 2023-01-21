@@ -1,55 +1,67 @@
-# medusa-plugin-ses
+# medusa-plugin-postmark
 
-Notifications plugin for Medusa ecommerce server that sends transactional emails via AWS SES (Simple Email Service).
+Notifications plugin for Medusa ecommerce server that sends transactional emails via [PostMark](https://postmarkapp.com/).
 
 ## Features
 
-- Uses the email templating features built into AWS SES
-- Templates are based on handlebars, so they are compatible with Sendgrid email templates
-- AWS has no frontend for managing templates like Sendgrid does.  You must use the AWS CLI or a third party template manager.
-- Refer to the AWS documentation at https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_CreateEmailTemplate.html.
-- This plugin does not currently handle email attachments of any sort.  If you have a plugin that adds pdf invoices or other attachments, they will not be sent via this plugin.  This may be added at a later time if the need is there.
+- Uses the email templating features built into Postmark
+- You can import/use tools like [stripo.email](https://stripo.email)
+- The plugin is in active development. If you have any feature requests, please open an issue.
 
 ## Configuration
 
-Enable in your medusa-config.js file similar to other plugins:
+Enable in your medusa-config.js file similar to other plugins:  
 
-```
-  {
-    resolve: `medusa-plugin-ses`,
-    options: {
-      access_key_id: process.env.SES_ACCESS_KEY_ID,
-      secret_access_key: process.env.SES_SECRET_ACCESS_KEY,
-      region: process.env.SES_REGION,
-      from: "example@example.com",
-      order_placed_template: "order_placed"
-      //order_return_requested_template: ""
-      //swap_shipment_created_template: ""
-      //claim_shipment_created_template: ""
-      //order_items_returned_template: ""
-      //swap_received_template: ""
-      //swap_created_template: ""
-      //gift_card_created_template: ""
-      //gift_card_created_template: ""
-      //order_shipped_template: ""
-      //order_canceled_template: ""
-      //user_password_reset_template: ""
-      //medusa_restock_template: ""
-      //order_refund_created_template: ""
-    }
-  }
+###### More events? (work in progress within the plugin!) [See here](https://docs.medusajs.com/advanced/backend/subscribers/events-list)
+
+```js
+  const plugins = [
+       // ... other plugins
+      {
+        resolve: `medusa-plugin-postmark`,
+        options: {
+          server_api: process.env.POSTMARK_SERVER_API,
+          from: process.env.POSTMARK_FROM,
+          events: {
+            order: {
+                placed: process.env.POSTMARK_ORDER_PLACED || null,
+                canceled: process.env.POSTMARK_ORDER_CANCELED || null,
+                shipment_created: process.env.POSTMARK_ORDER_SHIPMENT_CREATED || null,
+            },
+            customer: {
+                created: process.env.POSTMARK_CUSTOMER_CREATED || null,
+                password_reset: process.env.POSTMARK_CUSTOMER_PASSWORD_RESET || null,
+            },
+            user: {
+                password_reset: process.env.POSTMARK_USER_PASSWORD_RESET || null,
+            }
+          }
+        }
+      }
+  ]
 ```
 
-The credentials and region are pulled from env variables.  
-```
-SES_REGION=""
-SES_ACCESS_KEY_ID=""
-SES_SECRET_ACCESS_KEY=""
-```
-- SES_REGION will be for example "us-east-1"
-- Obtain the access key and secret access key by creating an IAM user with SES send permissions
+### Localisation
 
-The from email address must be a verified sender in your AWS account.
+Want separate templates for different languages?
+Alter medusa-config.js plugin options:
+
+```js
+// medusa config including the postmark plugin
+events: {
+    order: {
+        placed: { nl: 1234, en: 1235 },
+// rest of the events...
+```
+
+The api key and templates are pulled from env variables.  
+```
+POSTMARK_SERVER_API=""
+POSTMARK_FROM=""
+POSTMARK_ORDER_PLACED=1234
+```
+
+The `POSTMARK_FROM` email address must be a verified sender in your Postmark account.
 
 ## Acknowledgement
 
