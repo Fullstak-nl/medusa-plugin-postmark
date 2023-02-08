@@ -29,13 +29,12 @@ class PdfGenerator {
         const header = options?.pdf?.header;
         if (header && header?.enabled) {
             try {
-                let layout = {}
+                let layout = []
                 if(header?.content) {
                     const layoutJSON = await fetch(`./../../src/layouts/${header?.content}`)
                     layout = await layoutJSON.json()
-                }else
-                    layout = {}
-                Object.values(layout).forEach((layoutItem) => this.generateElement(doc,layoutItem))
+                }
+                layout.forEach((layoutItem) => this.generateElement(doc,layoutItem))
                 this.top += header?.height??50
             }catch (e) {
                 console.log("Header error: ",e)
@@ -67,19 +66,40 @@ class PdfGenerator {
                     doc.font(layoutItem?.font)
                 if(layoutItem?.size)
                     doc.fontSize(layoutItem?.size)
-                doc.text(layoutItem?.text, layoutItem?.x, layoutItem?.y, textOptions)
+                if(layoutItem?.x&&layoutItem?.y)
+                    doc.text(layoutItem?.text, layoutItem?.x, layoutItem?.y, Object.fromEntries(Object.entries(layoutItem).filter(([key]) => !['type','color','font','size','text', 'x', 'y'].includes(key))))
+                else
+                    doc.text(layoutItem?.text, Object.fromEntries(Object.entries(layoutItem).filter(([key]) => !['type','color','font','size','text', 'x', 'y'].includes(key))))
                 break;
             case 'moveDown':
-                doc.moveDown(layoutItem?.lines)
+                doc.moveDown(layoutItem?.lines??1)
+                this.top += doc._fontSize * (layoutItem?.lines??1)
                 break;
             case 'hr':
                 doc
                     .strokeColor(layoutItem?.color??'#aaaaaa')
                     .lineWidth(layoutItem?.width??1)
-                    .moveTo(0, this.top)
-                    .lineTo(doc.page.width, this.top)
+                    .moveTo(0, layoutItem?.y??this.top)
+                    .lineTo(layoutItem?.width??doc.page.width, layoutItem?.y??this.top)
                     .stroke()
                 this.top += layoutItem?.height??10
+                break;
+            case 'tableRow':
+                if(layoutItem?.color)
+                    doc.fillColor(layoutItem?.color)
+                if(layoutItem?.font)
+                    doc.font(layoutItem?.font)
+                if(layoutItem?.size)
+                    doc.fontSize(layoutItem?.size)
+                layoutItem?.columns?.forEach((column) => {
+                    if(column?.color)
+                        doc.fillColor(column?.color)
+                    if(column?.font)
+                        doc.font(column?.font)
+                    if(column?.size)
+                        doc.fontSize(column?.size)
+                    doc.text(column?.text, column?.x, column?.y??this.top, Object.fromEntries(Object.entries(column).filter(([key]) => !['type','color','font','size','text', 'x', 'y'].includes(key))))
+                })
                 break;
             default:
                 break;
