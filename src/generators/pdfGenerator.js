@@ -65,10 +65,22 @@ class PdfGenerator {
     parseVariables(text, data) {
         const regex = /{{\s([^{]+)\s}}/gi
         return text.replace(regex, (match, key)=>{
-            const keys = key.split('.')
+            let [keys, filter] = key.split(' | ')
+            keys = keys.split('.')
             let value = keys[0]==='item'?data?.items[this.item]:data
             keys.shift()
             keys.forEach(k=>value=value[k]??'__UNDEFINED__')
+            if(filter) {
+                if(filter.startsWith('date')) {
+                    const dateRegex = /date\(['"]([^'"]+)['"][\,\s]{0,2}([^))]*)\)/i
+                    const [_, locale, format] = dateRegex.exec(filter)
+                    value = new Date(value).toLocaleDateString(locale, JSON.parse(format.replace("'",'"'))??{})
+                }else if(filter.startsWith('currency')) {
+                    const numberRegex = /currency\(['"]([^'"]+)['"]\)/i
+                    const [_, locale] = numberRegex.exec(filter)
+                    value = new Intl.NumberFormat(locale, {style:'currency',currency: data?.currency_code.toUpperCase()}).format(value/100)
+                }
+            }
             return value??'__UNDEFINED__'
         })
     }
