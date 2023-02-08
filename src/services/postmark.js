@@ -31,7 +31,6 @@ class PostmarkService extends NotificationService {
 
   async fetchAttachments(event, data, attachmentGenerator) {
     let attachments = []
-    console.log(event,attachmentGenerator)
     switch (event) {
       case "user.password_reset": {
         try{
@@ -91,10 +90,9 @@ class PostmarkService extends NotificationService {
         return attachments
       }
       case "order.placed": {
-        console.log(attachmentGenerator.createInvoice)
+
         try{
-          if (attachmentGenerator && attachmentGenerator.createInvoice) {
-            console.log('making invoice')
+          if ((this.options_?.pdf?.enabled??false) && attachmentGenerator && attachmentGenerator.createInvoice) {
             const base64 = await attachmentGenerator.createInvoice(
                 this.options_,
                 data
@@ -104,7 +102,6 @@ class PostmarkService extends NotificationService {
               base64,
               type: "application/pdf",
             })
-            console.log('pushed invoice')
           }
         } catch (err) {
 
@@ -116,8 +113,6 @@ class PostmarkService extends NotificationService {
       default:
         return []
     }
-
-    return attachments
   }
 
   async fetchData(event, eventData, attachmentGenerator) {
@@ -152,18 +147,16 @@ class PostmarkService extends NotificationService {
     }
 
     let templateId = this.options_.events[group][action]
-    console.log("templateId: ", templateId)
     const data = await this.fetchData(event, eventData, attachmentGenerator)
     const attachments = await this.fetchAttachments(
       event,
       data,
       attachmentGenerator
     )
-    console.log("attachments: ", attachments)
 
     if (data.locale && typeof templateId === "object")
       templateId = templateId[data.locale] || Object.values(templateId)[0] // Fallback to first template if locale is not found
-//console.log(data, attachments)
+
     const sendOptions = {
       From: this.options_.from,
       to: data.email,
@@ -184,7 +177,7 @@ class PostmarkService extends NotificationService {
         }
       })
     }
-//console.log(sendOptions)
+
     return await this.client_.sendEmailWithTemplate(sendOptions)
     .then(() => ({ to: sendOptions.to, status: 'sent', data: sendOptions }))
     .catch((error) => {
@@ -198,7 +191,7 @@ class PostmarkService extends NotificationService {
       ...notification.data,
       To: config.to || notification.to,
     }
-    console.log(notification.event_name)
+
     const attachs = await this.fetchAttachments(
       notification.event_name,
       notification.data.dynamic_template_data,
