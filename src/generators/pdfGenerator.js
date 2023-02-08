@@ -67,6 +67,7 @@ class PdfGenerator {
         return text.replace(regex, (match, key)=>{
             const keys = key.split('.')
             let value = keys[0]==='item'?data?.items[this.item]:data
+            keys.shift()
             keys.forEach(k=>value=value[k]??'__UNDEFINED__')
             return value??'__UNDEFINED__'
         })
@@ -136,7 +137,7 @@ class PdfGenerator {
     }
 
     async createInvoice(options, order){
-        console.log(order)
+
         const doc = await this.startPdf(options)
         await this.generateHeader(doc, options)
         try{
