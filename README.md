@@ -33,10 +33,10 @@ const plugins = [
                     format: process.env.POSTMARK_PDF_FORMAT || 'A4', 
                     // see supported formats here: https://pdfkit.org/docs/paper_sizes.html
                     margin: {
-                        top: process.env.POSTMARK_PDF_MARGIN_TOP || '10mm',
-                        right: process.env.POSTMARK_PDF_MARGIN_RIGHT || '10mm',
-                        bottom: process.env.POSTMARK_PDF_MARGIN_BOTTOM || '10mm',
-                        left: process.env.POSTMARK_PDF_MARGIN_LEFT || '10mm'
+                        top: process.env.POSTMARK_PDF_MARGIN_TOP || '50',
+                        right: process.env.POSTMARK_PDF_MARGIN_RIGHT || '50',
+                        bottom: process.env.POSTMARK_PDF_MARGIN_BOTTOM || '50',
+                        left: process.env.POSTMARK_PDF_MARGIN_LEFT || '50'
                     }
                 },
                 header: {
