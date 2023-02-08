@@ -200,11 +200,11 @@ This is used to draw a table row.
     "columns": [
         {
             "text": "Column 1",
-            "x": 0
+            "width": 200
         },
         {
             "text": "Column 2",
-            "x": 100
+            "width": 150
         }
     ]
 }
@@ -291,7 +291,7 @@ We've created a few default templates _(thanks to [pdfkit invoice example](https
     "x": 200
   },
   {
-    "type": "moveDown",
+    "type": "moveDown"
   },
   {
     "type": "text",
@@ -302,7 +302,7 @@ We've created a few default templates _(thanks to [pdfkit invoice example](https
     "x": 200
   },
   {
-    "type": "moveDown",
+    "type": "moveDown"
   },
   {
     "type": "text",
@@ -313,6 +313,7 @@ We've created a few default templates _(thanks to [pdfkit invoice example](https
     "x": 200
   }
 ]
+
 ```
 
 `createInvoice.json`
@@ -339,7 +340,7 @@ We've created a few default templates _(thanks to [pdfkit invoice example](https
   {
     "type": "text",
     "font": "Helvetica-Bold",
-    "text": "#{{ order.id }}",
+    "text": "#{{ order.display_id }}",
     "size": 10,
     "x": 100
   },
@@ -388,7 +389,7 @@ We've created a few default templates _(thanks to [pdfkit invoice example](https
   },
   {
     "type": "moveDown",
-    "lines": 4
+    "lines": 1
   },
   {
     "type": "tableRow",
@@ -435,7 +436,7 @@ We've created a few default templates _(thanks to [pdfkit invoice example](https
         "width": 50
       },
       {
-        "text": "{{ item.total_price | currency('en-US') }}",
+        "text": "{{ item.totals.total | currency('en-US') }}",
         "width": 50
       }
     ]
@@ -530,8 +531,9 @@ We've created a few default templates _(thanks to [pdfkit invoice example](https
         "width": 50
       }
     ]
-  },
+  }
 ]
+
 ```
 `footer.json`
 ```json
@@ -540,9 +542,12 @@ We've created a few default templates _(thanks to [pdfkit invoice example](https
     "type": "text",
     "text": "Thank you for your business!",
     "size": 10,
-    "color": "#444444"
+    "color": "#444444",
+    "width": "full",
+    "align": "center"
   }
 ]
+
 ```
 
 ## Acknowledgement
