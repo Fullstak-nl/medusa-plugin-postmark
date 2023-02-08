@@ -176,7 +176,7 @@ You can use the same options as for `text` to style the text in the table row. I
 
 ### Localisation
 
-Want separate templates for different languages?
+Want separate templates for different languages?  
 Alter medusa-config.js plugin options:
 
 ```js
@@ -198,4 +198,4 @@ The `POSTMARK_FROM` email address must be a verified sender in your Postmark acc
 
 ## Acknowledgement
 
-This plugin borrows extensively from medusa-plugin-sendgrid by Oliver Juhl.
+This plugin is originally based on medusa-plugin-sendgrid by Oliver Juhl.
