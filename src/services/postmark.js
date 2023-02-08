@@ -30,15 +30,101 @@ class PostmarkService extends NotificationService {
   }
 
   async fetchAttachments(event, data, attachmentGenerator) {
+    let attachments = []
+    console.log(event,attachmentGenerator)
     switch (event) {
-      //@TODO: Add attachments for events
+      case "user.password_reset": {
+        try{
+            if (attachmentGenerator && attachmentGenerator.createPasswordReset) {
+                const base64 = await attachmentGenerator.createPasswordReset()
+                attachments.push({
+                  name: "password-reset",
+                  base64,
+                  type: "application/pdf",
+                })
+            }
+        } catch (err) {
+          console.error(err)
+        }
+        return attachments
+      }
+      case "swap.created":
+      case "order.return_requested": {
+        try {
+          const {shipping_method, shipping_data} = data.return_request
+          if (shipping_method) {
+            const provider = shipping_method.shipping_option.provider_id
+
+            const lbl = await this.fulfillmentProviderService_.retrieveDocuments(
+                provider,
+                shipping_data,
+                "label"
+            )
+
+            attachments = attachments.concat(
+                lbl.map((d) => ({
+                  name: "return-label",
+                  base64: d.base_64,
+                  type: d.type,
+                }))
+            )
+          }
+        } catch (err) {
+            console.error(err)
+        }
+
+        try{
+          if (attachmentGenerator && attachmentGenerator.createReturnInvoice) {
+            const base64 = await attachmentGenerator.createReturnInvoice(
+                data.order,
+                data.return_request.items
+            )
+            attachments.push({
+              name: "invoice",
+              base64,
+              type: "application/pdf",
+            })
+          }
+        } catch (err) {
+            console.error(err)
+        }
+        return attachments
+      }
+      case "order.placed": {
+        console.log(attachmentGenerator.createInvoice)
+        try{
+          if (attachmentGenerator && attachmentGenerator.createInvoice) {
+            console.log('making invoice')
+            const base64 = await attachmentGenerator.createInvoice(
+                this.options_,
+                data.order,
+                data.items
+            )
+            attachments.push({
+              name: "invoice",
+              base64,
+              type: "application/pdf",
+            })
+            console.log('pushed invoice')
+          }
+        } catch (err) {
+
+          console.log('error ?',err)
+          console.error(err)
+        }
+        return attachments
+      }
       default:
         return []
     }
+
+    return attachments
   }
 
   async fetchData(event, eventData, attachmentGenerator) {
     switch (event) {
+      case "cart.updated":
+        return this.cartPlacedData(eventData, attachmentGenerator)
       case "order.placed":
         return this.orderPlacedData(eventData, attachmentGenerator)
       case "order.shipment_created":
@@ -69,20 +155,22 @@ class PostmarkService extends NotificationService {
     }
 
     let templateId = this.options_.events[group][action]
+    console.log("templateId: ", templateId)
     const data = await this.fetchData(event, eventData, attachmentGenerator)
-    // Attachments aren't supported by yet
-    /*const attachments = await this.fetchAttachments(
+    //console.log("data: ", data)
+    const attachments = await this.fetchAttachments(
       event,
       data,
       attachmentGenerator
-    )*/
+    )
+    console.log("attachments: ", attachments)
 
     if (data.locale && typeof templateId === "object")
       templateId = templateId[data.locale] || Object.values(templateId)[0] // Fallback to first template if locale is not found
-
+//console.log(data, attachments)
     const sendOptions = {
       From: this.options_.from,
-      To: data.email,
+      to: data.email,
       TemplateId: templateId,
       TemplateModel: {
         ...data,
@@ -90,26 +178,22 @@ class PostmarkService extends NotificationService {
       }
     }
 
-    /*if (attachments?.length) {
-      sendOptions.has_attachments = true
-      sendOptions.attachments = attachments.map((a) => {
+    if (attachments?.length) {
+      sendOptions.Attachments = attachments.map((a) => {
         return {
           content: a.base64,
-          filename: a.name,
-          type: a.type,
-          disposition: "attachment",
-          contentId: a.name,
+          Name: a.name,
+          ContentType: a.type,
+          ContentID: `cid:${a.name}`,
         }
       })
-    }*/
-
-    //console.log(sendOptions)
-
+    }
+//console.log(sendOptions)
     return await this.client_.sendEmailWithTemplate(sendOptions)
-    .then(() => ({ to: sendOptions.To, status: 'sent', data: sendOptions }))
+    .then(() => ({ to: sendOptions.to, status: 'sent', data: sendOptions }))
     .catch((error) => {
       console.error(error)
-        return { to: sendOptions.To, status: 'failed', data: sendOptions }
+        return { to: sendOptions.to, status: 'failed', data: sendOptions }
     })
   }
 
@@ -118,8 +202,8 @@ class PostmarkService extends NotificationService {
       ...notification.data,
       To: config.to || notification.to,
     }
-
-    /*const attachs = await this.fetchAttachments(
+    console.log(notification.event_name)
+    const attachs = await this.fetchAttachments(
       notification.event_name,
       notification.data.dynamic_template_data,
       attachmentGenerator
@@ -132,7 +216,7 @@ class PostmarkService extends NotificationService {
         disposition: "attachment",
         contentId: a.name,
       }
-    })*/
+    })
 
     return await this.client_.sendEmailWithTemplate(sendOptions)
         .then(() => ({ to: sendOptions.To, status: 'sent', data: sendOptions }))
@@ -297,6 +381,13 @@ class PostmarkService extends NotificationService {
         currencyCode
       )} ${currencyCode}`,
       total: `${this.humanPrice_(total, currencyCode)} ${currencyCode}`,
+    }
+  }
+  async cartPlacedData({ id }) {
+
+    return {
+      order: {test:'test'},
+      items: {test:'test2'},
     }
   }
 

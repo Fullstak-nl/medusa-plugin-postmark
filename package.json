@@ -19,6 +19,7 @@
       "@babel/preset-env": "^7.7.5",
       "@babel/register": "^7.7.4",
       "@babel/runtime": "^7.9.6",
+      "@medusajs/medusa": "^1.7.5",
       "client-sessions": "^0.8.0",
       "cross-env": "^5.2.1",
       "jest": "^25.5.2",
@@ -37,8 +38,10 @@
       "@babel/plugin-transform-classes": "^7.9.5",
       "body-parser": "^1.19.0",
       "express": "^4.17.1",
+      "get-stream": "^6.0.1",
       "medusa-core-utils": "^1.1.37",
       "medusa-test-utils": "^1.1.37",
+      "pdfkit": "^0.13.0",
       "postmark": "^3.0.15"
    },
    "keywords": [
