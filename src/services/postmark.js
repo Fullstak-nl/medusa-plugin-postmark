@@ -97,8 +97,7 @@ class PostmarkService extends NotificationService {
             console.log('making invoice')
             const base64 = await attachmentGenerator.createInvoice(
                 this.options_,
-                data.order,
-                data.items
+                data
             )
             attachments.push({
               name: "invoice",
@@ -123,8 +122,6 @@ class PostmarkService extends NotificationService {
 
   async fetchData(event, eventData, attachmentGenerator) {
     switch (event) {
-      case "cart.updated":
-        return this.cartPlacedData(eventData, attachmentGenerator)
       case "order.placed":
         return this.orderPlacedData(eventData, attachmentGenerator)
       case "order.shipment_created":
@@ -157,7 +154,6 @@ class PostmarkService extends NotificationService {
     let templateId = this.options_.events[group][action]
     console.log("templateId: ", templateId)
     const data = await this.fetchData(event, eventData, attachmentGenerator)
-    //console.log("data: ", data)
     const attachments = await this.fetchAttachments(
       event,
       data,
@@ -383,14 +379,6 @@ class PostmarkService extends NotificationService {
       total: `${this.humanPrice_(total, currencyCode)} ${currencyCode}`,
     }
   }
-  async cartPlacedData({ id }) {
-
-    return {
-      order: {test:'test'},
-      items: {test:'test2'},
-    }
-  }
-
   async orderPlacedData({ id }) {
     const order = await this.orderService_.retrieve(id, {
       select: [

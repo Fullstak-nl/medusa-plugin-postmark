@@ -6,6 +6,7 @@ class PdfGenerator {
         this.PDFDocument = PDFDocument;
         this.getStream = getStream;
         this.top = 0;
+        this.item = 0;
     }
 
     async startPdf(options) {
@@ -43,7 +44,35 @@ class PdfGenerator {
         }
     }
 
-    generateElement(doc, layoutItem) {
+    async generateFooter(doc, options) {
+        const footer = options?.pdf?.footer;
+        if (footer && footer?.enabled) {
+            try {
+                let layout = []
+                if(footer?.content) {
+                    const layoutJSON = await fetch(`./../../src/layouts/${footer?.content}`)
+                    layout = await layoutJSON.json()
+                }
+                layout.forEach((layoutItem) => this.generateElement(doc,layoutItem))
+                this.top += footer?.height??50
+            }catch (e) {
+                console.log("Footer error: ",e)
+                return
+            }
+        }
+    }
+
+    parseVariables(text, data) {
+        const regex = /{{\s([^{]+)\s}}/gi
+        return text.replace(regex, (match, key)=>{
+            const keys = key.split('.')
+            let value = keys[0]==='item'?data?.items[this.item]:data
+            keys.forEach(k=>value=value[k]??'__UNDEFINED__')
+            return value??'__UNDEFINED__'
+        })
+    }
+
+    generateElement(doc, layoutItem, data) {
         switch (layoutItem.type) {
             case 'image':
                 const imageOptions = {"fit":layoutItem?.fit}
@@ -67,9 +96,9 @@ class PdfGenerator {
                 if(layoutItem?.size)
                     doc.fontSize(layoutItem?.size)
                 if(layoutItem?.x&&layoutItem?.y)
-                    doc.text(layoutItem?.text, layoutItem?.x, layoutItem?.y, Object.fromEntries(Object.entries(layoutItem).filter(([key]) => !['type','color','font','size','text', 'x', 'y'].includes(key))))
+                    doc.text(this.parseVariables(layoutItem?.text, data), layoutItem?.x, layoutItem?.y, Object.fromEntries(Object.entries(layoutItem).filter(([key]) => !['type','color','font','size','text', 'x', 'y'].includes(key))))
                 else
-                    doc.text(layoutItem?.text, Object.fromEntries(Object.entries(layoutItem).filter(([key]) => !['type','color','font','size','text', 'x', 'y'].includes(key))))
+                    doc.text(this.parseVariables(layoutItem?.text, data), Object.fromEntries(Object.entries(layoutItem).filter(([key]) => !['type','color','font','size','text', 'x', 'y'].includes(key))))
                 break;
             case 'moveDown':
                 doc.moveDown(layoutItem?.lines??1)
@@ -98,7 +127,7 @@ class PdfGenerator {
                         doc.font(column?.font)
                     if(column?.size)
                         doc.fontSize(column?.size)
-                    doc.text(column?.text, column?.x, column?.y??this.top, Object.fromEntries(Object.entries(column).filter(([key]) => !['type','color','font','size','text', 'x', 'y'].includes(key))))
+                    doc.text(this.parseVariables(column?.text, data), column?.x, column?.y??this.top, Object.fromEntries(Object.entries(column).filter(([key]) => !['type','color','font','size','text', 'x', 'y'].includes(key))))
                 })
                 break;
             default:
@@ -106,16 +135,33 @@ class PdfGenerator {
         }
     }
 
-    async createInvoice(options, order, items){
-        console.log(order,items)
+    async createInvoice(options, order){
+        console.log(order)
         const doc = await this.startPdf(options)
         await this.generateHeader(doc, options)
         try{
             const layoutJSON = await fetch(`./../../src/layouts/${options?.templates?.invoice}`)
             const layout = await layoutJSON.json()
+            let itemLayout = []
+            let itemLayoutRunning = false;
             Object.values(layout).forEach((layoutItem) => {
-
+                if(layoutItem?.type==='itemLoop'||(itemLayoutRunning === true&&layoutItem?.type!=='itemLoopEnd')) {
+                    itemLayoutRunning = true
+                    itemLayout.push(layoutItem)
+                }else if(layoutItem?.type==='itemLoopEnd') {
+                    itemLayoutRunning = false
+                    order.items.forEach((item, index) => {
+                        this.item = index
+                        itemLayout.forEach((layoutItem) => this.generateElement(doc,layoutItem, data))
+                    })
+                }else
+                    this.generateElement(doc, layoutItem, {order})
             })
+        }catch (e) {
+            console.log("Invoice error: ",e)
+        }
+        await this.generateFooter(doc, options)
+        try{
             doc.end()
             const docBuffer = await this.getStream.buffer(doc)
             return docBuffer.toString('base64')

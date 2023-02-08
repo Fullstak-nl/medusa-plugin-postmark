@@ -42,8 +42,13 @@ const plugins = [
                 header: {
                     enabled: process.env.POSTMARK_PDF_HEADER_ENABLED || false,
                     content: process.env.POSTMARK_PDF_HEADER_CONTENT || null,
-                    // loads default header if null, otherwise loads the file from `POSTMARK_PDF_HEADER_CONTENT`
+                    // loads empty header if null, otherwise loads the file from `POSTMARK_PDF_HEADER_CONTENT`
                     height: process.env.POSTMARK_PDF_HEADER_HEIGHT || '50'
+                },
+                footer: {
+                    enabled: process.env.POSTMARK_PDF_FOOTER_ENABLED || false,
+                    content: process.env.POSTMARK_PDF_FOOTER_CONTENT || null,
+                    // loads empty footer if null, otherwise loads the file from `POSTMARK_PDF_FOOTER_CONTENT`
                 },
                 templates: {
                     invoice: process.env.POSTMARK_PDF_INVOICE_TEMPLATE || null,
@@ -79,13 +84,48 @@ const plugins = [
 
 ### Templates
 
-The plugin uses the Postmark template system for emails. For attachments the plugin relies on the [pdfkit](https://pdfkit.org/) library.
-In your JSON templates you can use several types:
+The plugin uses the Postmark template system for emails. For attachments the plugin relies on the [pdfkit](https://pdfkit.org/) library.  
+In your JSON templates you can use several types (and [variables](#variables)):
 - `image` for (**local**) images
 - `text` for simple words, (long) sentences, paragraphs and links
 - `moveDown` for moving the cursor down one line
 - `hr` for a horizontal line
 - `tableRow` for a table(-like) row
+- `itemLoop` for looping over items in an order
+- `itemLoopEnd` for ending the item loop
+
+**Example:**
+```json
+[
+  {
+    "type": "image",
+    "image": "image.png",
+    "x": 100,
+    "y": 100,
+    "fit": [200, 50]
+  },
+  {
+    "type": "text",
+    "text": "This is a text",
+    "size": 20
+  },
+  {
+    "type": "moveDown",
+    "lines": 2
+  },
+  {
+    "type": "hr"
+  },
+  {
+    "type": "moveDown",
+    "lines": 2
+  },
+  {
+    "type": "text",
+    "text": "Another text"
+  }
+]
+```
 
 #### image
 
@@ -96,9 +136,7 @@ Images are stored in `/src/images/` and can be used in the template like this:
     "image": "image.png",
     "x": 100,
     "y": 100,
-    "fit": [200, 50],
-    "align": "center",
-    "valign": "center"
+    "fit": [200, 50]
 }
 ```
 `fit` has multiple options, see [here](https://pdfkit.org/docs/images.html#fitting-images-to-a-frame) for more info.  
@@ -116,7 +154,7 @@ Text can be used for words, sentences, paragraphs and links.
     "text": "This is a text"
 }
 ```
-If you use `moveDown` correct you won't need to use `x` and `y` for the text.
+If you use [`moveDown`](#movedown) correct you won't need to use `x` and `y` for the text.
 ##### Optional:
 These options can be used to style the text or to position it.
 - `x` the x position of the text
@@ -151,7 +189,7 @@ This is used to draw a horizontal line.
 - `color` the color of the line (Hex codes `#ff0000`)
 - `width` the width of the line if you don't want it to be the full width of the page
 - `height` the height of the line element, including padding
-- `y` the y position of the line if you can not rely on the cursor (affected by `moveDown`)
+- `y` the y position of the line if you can not rely on the cursor (affected by [`moveDown`](#movedown))
 
 #### tableRow
 
@@ -173,6 +211,35 @@ This is used to draw a table row.
 ```
 ##### Optional:
 You can use the same options as for `text` to style the text in the table row. If you want a special column styled, you can add the options to the column object.
+
+#### itemLoop
+
+This is used to start the loop of items in an order.  
+To access item variables, use the `item` object, for example `{{ item.title }}`.
+```json
+{
+    "type": "itemLoop"
+}
+```
+
+#### itemLoopEnd
+
+This is used to end the loop of items in an order.  
+```json
+{
+    "type": "itemLoopEnd"
+}
+```
+
+### Variables
+
+In the template you can use variables. These are replaced by the plugin with the correct value.  
+To use a variable, use the following syntax: `{{ variable_name }}`, for example `{{ order.customer.first_name }}`.  
+Order item variables are available inside the `itemLoop` and `itemLoopEnd` elements, for example `{{ item.title }}`.  
+**Possible variables depend on your notification system.**  
+You can use the `options` object and every template has his own `data` object.   
+Depending on the plugin you use, _(almost)_ every plugin **that supports attachments** based on `medusa-plugin-sendgrid` has the same variable `order` after the `options` variable which holds all the plugin variables.  
+More information on the possible values that `order` can have can be found [here](https://docs.medusajs.com/add-plugins/sendgrid/#template-reference). 
 
 ### Localisation
 
