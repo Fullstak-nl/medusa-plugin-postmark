@@ -157,15 +157,20 @@ class PostmarkService extends NotificationService {
     if (data.locale && typeof templateId === "object")
       templateId = templateId[data.locale] || Object.values(templateId)[0] // Fallback to first template if locale is not found
 
+    if(templateId === null)
+        return false
+
     const sendOptions = {
       From: this.options_.from,
-      to: data.email,
+      to: data.email ?? data?.customer?.email,
       TemplateId: templateId,
       TemplateModel: {
         ...data,
         ...this.options_.default_data
       }
     }
+    if(this.options_?.bcc)
+        sendOptions.Bcc = this.options_.bcc
 
     if (attachments?.length) {
       sendOptions.Attachments = attachments.map((a) => {

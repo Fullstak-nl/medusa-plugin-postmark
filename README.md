@@ -25,6 +25,7 @@ const plugins = [
         options: {
             server_api: process.env.POSTMARK_SERVER_API,
             from: process.env.POSTMARK_FROM,
+            bcc: process.env.POSTMARK_BCC || null,
             pdf: {
                 enabled: process.env.POSTMARK_PDF_ENABLED || false,
                 settings: {
