@@ -1,15 +1,21 @@
 import { humanizeAmount, zeroDecimalCurrencies } from "medusa-core-utils"
-import { NotificationService } from "medusa-interfaces"
+import { DateTime } from "luxon";
+import { NotificationService } from "medusa-interfaces";
+import { EntityManager, IsNull, Not, LessThan } from "typeorm";
 import * as postmark from "postmark"
 
 class PostmarkService extends NotificationService {
-  static identifier = "postmark"
+  static identifier = "postmark";
+  manager_ = null;
+  orderRepository_ = null;
 
   /**
    * @param {Object} options - options defined in `medusa-config.js`
    */
   constructor(
     {
+      manager,
+      orderRepository,
       orderService,
       cartService,
       fulfillmentService,
@@ -17,16 +23,79 @@ class PostmarkService extends NotificationService {
     },
     options
   ) {
-    super()
+    super({manager,orderRepository})
 
     this.options_ = options
 
+
+    this.manager_ = manager;
+    this.orderRepository_ = orderRepository;
     this.orderService_ = orderService
     this.cartService_ = cartService
     this.fulfillmentService_ = fulfillmentService
     this.totalsService_ = totalsService
 
     this.client_ = new postmark.ServerClient(options.server_api)
+  }
+
+  async remindUpsellOrders() {
+    //console.log(this.options_)
+    if(!this.options_?.upsell || !this.options_?.upsell?.enabled || !this.options_?.upsell?.collection || !this.options_?.upsell?.delay || !this.options_?.upsell?.template)
+        return []
+    const orderRepo = this.manager_.withRepository(this.orderRepository_);
+    const options = this.options_.upsell;
+    const validThrough = DateTime.now().minus({ days: options.valid }).toLocaleString(DateTime.DATE_FULL)
+    const orders = await orderRepo.findBy({
+      created_at: LessThan(new Date(new Date().getTime() - parseInt(options.delay) * 60 * 1000)),
+    })
+
+    for (const order of orders) {
+      if(order.metadata?.upsell_sent)
+        continue
+      const orderData = await this.orderService_.retrieve(order.id, {
+        select: ["id"],
+        relations: [
+          "customer","items","items.variant","items.variant.product"
+        ],
+      })
+      let upsell = true
+      for (const item of orderData.items) {
+          if(item?.variant?.product?.collection_id !== options.collection)
+              upsell = false
+      }
+      if(upsell){
+        if (options.template.includes(",")) {
+            // VERY simple setup for A/B testing
+            options.template = options.template.split(",")
+            options.template = options.template[Math.floor(Math.random() * options.template.length)]
+        }
+        const sendOptions = {
+          From: this.options_.from,
+          to: orderData.customer.email,
+          TemplateId: options.template,
+          TemplateModel: {
+            ...orderData,
+            ...this.options_.default_data,
+            valid_through: validThrough
+          }
+        }
+
+        //update order metadata
+        order.metadata = {
+            ...order.metadata,
+            upsell_sent: true
+        }
+        //console.log("Sending upsell email to " + orderData.customer.email + " for order " + orderData.id)
+        await this.client_.sendEmailWithTemplate(sendOptions)
+            .then(async () => {
+              await this.orderService_.update(order.id, {metadata: order.metadata})
+            })
+            .catch((error) => {
+              console.error(error)
+              return { to: sendOptions.to, status: 'failed', data: sendOptions }
+            })
+      }
+    }
   }
 
   async fetchAttachments(event, data, attachmentGenerator) {

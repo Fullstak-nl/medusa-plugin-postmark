@@ -71,6 +71,13 @@ const plugins = [
                     password_reset: process.env.POSTMARK_USER_PASSWORD_RESET || null,
                 }
             },
+            upsell: {
+                enabled: process.env.POSTMARK_UPSELL_ENABLED || false,
+                template: process.env.POSTMARK_UPSELL_TEMPLATE || null, // if you supply multiple templates (comma seperated), the plugin will pick one at random
+                delay: process.env.POSTMARK_UPSELL_DELAY || 9, // delay in days
+                valid: process.env.POSTMARK_UPSELL_VALID || 30, // valid in days
+                collection: process.env.POSTMARK_UPSELL_COLLECTION || null,
+            },
             default_data: {
                 // ... default data to be passed to the email template
                 product_url: process.env.POSTMARK_PRODUCT_URL || '',
