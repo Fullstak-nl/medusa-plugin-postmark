@@ -10,6 +10,7 @@ Notifications plugin for Medusa ecommerce server that sends transactional emails
 - You can import/use tools like [stripo.email](https://stripo.email)
 - The plugin is in active development. If you have any feature requests, please open an issue.
 - Create PDF invoices and credit notes and attach them to the email
+- Send out upsell emails to customers that have recently placed an order with certain collections
 
 ## Configuration
 
