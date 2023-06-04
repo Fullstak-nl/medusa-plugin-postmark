@@ -46,7 +46,7 @@ class PostmarkService extends NotificationService {
     const options = this.options_.upsell;
     const validThrough = DateTime.now().minus({ days: options.valid }).toLocaleString(DateTime.DATE_FULL)
     const orders = await orderRepo.findBy({
-      created_at: LessThan(new Date(new Date().getTime() - parseInt(options.delay) * 60 * 1000)),
+      created_at: LessThan(new Date(new Date().getTime() - parseInt(options.delay) * 60 * 60 * 24 * 1000)),
     })
 
     for (const order of orders) {
