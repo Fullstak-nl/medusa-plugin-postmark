@@ -563,8 +563,12 @@ class PostmarkService extends NotificationService {
         currencyCode
       )} ${currencyCode}`,
       shipping_total: `${this.humanPrice_(
-        shipping_total,
-        currencyCode
+          shipping_total,
+          currencyCode
+      )} ${currencyCode}`,
+      shipping_total_inc: `${this.humanPrice_(
+        order?.shipping_methods[0]?.price || shipping_total,
+          currencyCode
       )} ${currencyCode}`,
       total: `${this.humanPrice_(total, currencyCode)} ${currencyCode}`,
     }
