@@ -145,7 +145,7 @@ class PostmarkService extends NotificationService {
     })
 
     for (const order of orders) {
-      if(order.metadata?.upsell_sent)
+      if(order.metadata?.upsell_sent || order.created_at < new Date(new Date().getTime() - parseInt(options.delay) * 60 * 60 * 24 * 1000))
         continue
       const orderData = await this.orderService_.retrieve(order.id, {
         select: ["id"],
