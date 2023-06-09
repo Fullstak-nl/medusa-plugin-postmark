@@ -8,6 +8,8 @@ class PostmarkService extends NotificationService {
   static identifier = "postmark";
   manager_ = null;
   orderRepository_ = null;
+  cartRepository_ = null;
+  lineItemRepository_ = null;
 
   /**
    * @param {Object} options - options defined in `medusa-config.js`
@@ -16,6 +18,8 @@ class PostmarkService extends NotificationService {
     {
       manager,
       orderRepository,
+      cartRepository,
+      lineItemRepository,
       orderService,
       cartService,
       fulfillmentService,
@@ -23,19 +27,112 @@ class PostmarkService extends NotificationService {
     },
     options
   ) {
-    super({manager,orderRepository})
+    super({manager,orderRepository,cartRepository,lineItemRepository})
 
     this.options_ = options
 
 
     this.manager_ = manager;
     this.orderRepository_ = orderRepository;
+    this.cartRepository_ = cartRepository;
+    this.lineItemRepository_ = lineItemRepository;
     this.orderService_ = orderService
     this.cartService_ = cartService
     this.fulfillmentService_ = fulfillmentService
     this.totalsService_ = totalsService
 
     this.client_ = new postmark.ServerClient(options.server_api)
+  }
+
+  async getAbandonedCarts() {
+    if(!this.options_?.abandoned_cart || !this.options_?.abandoned_cart?.enabled || !this.options_?.abandoned_cart?.first)
+      return;
+    console.log("Getting abandoned carts")
+    const options = this.options_?.abandoned_cart;
+    const now = new Date();
+    const firstCheck = new Date(now.getTime() - parseInt(options?.first?.delay) * 60 * 60 * 1000);
+    const secondCheck = new Date(now.getTime() - parseInt(options?.second?.delay) * 60 * 60 * 1000);
+    const thirdCheck = new Date(now.getTime() - parseInt(options?.third?.delay) * 60 * 60 * 1000);
+    const cartRepository = this.manager_.withRepository(this.cartRepository_);
+    const lineItemRepository = this.manager_.withRepository(this.lineItemRepository_);
+    const carts = await cartRepository.findBy({
+      email: Not(IsNull()),
+    });
+    console.log("Checking carts")
+    let abandonedCarts = [];
+    for (const cart of carts) {
+      if(cart?.id!=='cart_01H25VEBD9AK4KJ61NRQM0VG0F') continue;
+      const cartData = await this.cartService_.retrieve(cart.id, {relations: ["items","shipping_address","region"]})
+      if (cartData.items.find((li) => li?.updated_at <= firstCheck)!==undefined && cart?.metadata?.third_abandonedcart_mail !== true)
+        abandonedCarts.push(cartData);
+    }
+    if(abandonedCarts.length === 0) return;
+
+    for (const cart of abandonedCarts) {
+      const check = cart.items.sort((a, b) => {
+        return b.updated_at.getTime() - a.updated_at.getTime();
+      })[0].updated_at;
+      const items = this.processItems_(cart.items, cart?.region?.includes_tax?0:(cart?.region?.tax_rate/100), cart?.region?.currency_code.toUpperCase())
+      const sendOptions = {
+        From: this.options_.from,
+        to: cart.email,
+        TemplateId: 0,
+        TemplateModel: {
+          ...cart,
+          items,
+          ...this.options_.default_data
+        }
+      }
+      if (check < secondCheck) {
+        if(check < thirdCheck){
+          if(options?.third?.template) {
+            sendOptions.TemplateId = options?.third?.template
+            //console.log("Sending third mail");
+            await this.client_.sendEmailWithTemplate(sendOptions)
+                .then(async () => {
+                  await cartRepository.update(cart.id,{ metadata: {
+                      ...cart.metadata || {},
+                      third_abandonedcart_mail: true
+                    }})
+                })
+                .catch((error) => {
+                  console.error(error)
+                  return { to: sendOptions.to, status: 'failed', data: sendOptions }
+                })
+          }
+        }else{
+          if(options?.second?.template) {
+            sendOptions.TemplateId = options?.second?.template
+            await this.client_.sendEmailWithTemplate(sendOptions)
+                .then(async () => {
+                  await cartRepository.update(cart.id,{ metadata: {
+                      ...cart.metadata || {},
+                      second_abandonedcart_mail: true
+                    }})
+                })
+                .catch((error) => {
+                  console.error(error)
+                  return { to: sendOptions.to, status: 'failed', data: sendOptions }
+                })
+          }
+        }
+      }else{
+        if(options?.first?.template){
+          sendOptions.TemplateId = options?.first?.template
+          await this.client_.sendEmailWithTemplate(sendOptions)
+              .then(async () => {
+                await cartRepository.update(cart.id,{ metadata: {
+                    ...cart.metadata || {},
+                    first_abandonedcart_mail: true
+                  }})
+              })
+              .catch((error) => {
+                console.error(error)
+                return { to: sendOptions.to, status: 'failed', data: sendOptions }
+              })
+        }
+      }
+    }
   }
 
   async remindUpsellOrders() {

@@ -1,7 +1,5 @@
 # medusa-plugin-postmark
 
-## `Work in progress!!`
-
 Notifications plugin for Medusa ecommerce server that sends transactional emails via [PostMark](https://postmarkapp.com/).
 
 ## Features
@@ -11,6 +9,7 @@ Notifications plugin for Medusa ecommerce server that sends transactional emails
 - The plugin is in active development. If you have any feature requests, please open an issue.
 - Create PDF invoices and credit notes and attach them to the email
 - Send out upsell emails to customers that have recently placed an order with certain collections
+- Send out automated abandoned cart emails to customers that have abandoned their cart (based on last updated date of cart)
 
 ## Configuration
 
@@ -78,6 +77,21 @@ const plugins = [
                 delay: process.env.POSTMARK_UPSELL_DELAY || 9, // delay in days
                 valid: process.env.POSTMARK_UPSELL_VALID || 30, // valid in days
                 collection: process.env.POSTMARK_UPSELL_COLLECTION || null,
+            },
+            abandoned_cart: {
+                enabled: process.env.POSTMARK_ABANDONED_CART_ENABLED || false,
+                first: {
+                    delay: process.env.POSTMARK_ABANDONED_CART_FIRST_DELAY || 1, // delay in hours
+                    template: process.env.POSTMARK_ABANDONED_CART_FIRST_TEMPLATE || null, // if you supply multiple templates (comma seperated), the plugin will pick one at random
+                },
+                second: {
+                    delay: process.env.POSTMARK_ABANDONED_CART_SECOND_DELAY || 24, // delay in hours
+                    template: process.env.POSTMARK_ABANDONED_CART_SECOND_TEMPLATE || null, // if you supply multiple templates (comma seperated), the plugin will pick one at random
+                },
+                third: {
+                    delay: process.env.POSTMARK_ABANDONED_CART_THIRD_DELAY || 48, // delay in hours
+                    template: process.env.POSTMARK_ABANDONED_CART_THIRD_TEMPLATE || null, // if you supply multiple templates (comma seperated), the plugin will pick one at random
+                },
             },
             default_data: {
                 // ... default data to be passed to the email template
