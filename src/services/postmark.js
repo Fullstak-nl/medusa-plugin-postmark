@@ -61,7 +61,6 @@ class PostmarkService extends NotificationService {
     console.log("Checking carts")
     let abandonedCarts = [];
     for (const cart of carts) {
-      if(cart?.id!=='cart_01H25VEBD9AK4KJ61NRQM0VG0F') continue;
       const cartData = await this.cartService_.retrieve(cart.id, {relations: ["items","shipping_address","region"]})
       if (cartData.items.find((li) => li?.updated_at <= firstCheck)!==undefined && cart?.metadata?.third_abandonedcart_mail !== true)
         abandonedCarts.push(cartData);
@@ -85,9 +84,8 @@ class PostmarkService extends NotificationService {
       }
       if (check < secondCheck) {
         if(check < thirdCheck){
-          if(options?.third?.template) {
+          if(options?.third?.template&&cart?.metadata?.third_abandonedcart_mail !== true) {
             sendOptions.TemplateId = options?.third?.template
-            //console.log("Sending third mail");
             await this.client_.sendEmailWithTemplate(sendOptions)
                 .then(async () => {
                   await cartRepository.update(cart.id,{ metadata: {
@@ -101,7 +99,7 @@ class PostmarkService extends NotificationService {
                 })
           }
         }else{
-          if(options?.second?.template) {
+          if(options?.second?.template&&cart?.metadata?.second_abandonedcart_mail !== true) {
             sendOptions.TemplateId = options?.second?.template
             await this.client_.sendEmailWithTemplate(sendOptions)
                 .then(async () => {
@@ -117,7 +115,7 @@ class PostmarkService extends NotificationService {
           }
         }
       }else{
-        if(options?.first?.template){
+        if(options?.first?.template&&cart?.metadata?.first_abandonedcart_mail !== true) {
           sendOptions.TemplateId = options?.first?.template
           await this.client_.sendEmailWithTemplate(sendOptions)
               .then(async () => {
