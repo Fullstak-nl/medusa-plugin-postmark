@@ -61,7 +61,14 @@ class PostmarkService extends NotificationService {
     console.log("Checking carts")
     let abandonedCarts = [];
     for (const cart of carts) {
+      let orderCheck = false;
+      try{
+         orderCheck = await this.orderService_.retrieveByCartId(cart.id)
+      }catch (e) {
+        orderCheck = false;
+      }
       const cartData = await this.cartService_.retrieve(cart.id, {relations: ["items","shipping_address","region"]})
+      if(orderCheck) continue;
       if (cartData.items.find((li) => li?.updated_at <= firstCheck)!==undefined && cart?.metadata?.third_abandonedcart_mail !== true)
         abandonedCarts.push(cartData);
     }
