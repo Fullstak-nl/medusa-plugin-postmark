@@ -6,8 +6,8 @@ const abandonedcart = async (
     options
 ) => {
   const jobSchedulerService = container.resolve("jobSchedulerService");
-  jobSchedulerService.create("abandoned-carts", {}, "* * * * *", async () => {
-    // job to execute
+  jobSchedulerService.create("abandoned-carts", {}, "0 * * * *", async () => {
+
     const postmarkService = container.resolve(
         "postmarkService"
     );
