@@ -208,7 +208,7 @@ class PostmarkService extends NotificationService {
             if (attachmentGenerator && attachmentGenerator.createPasswordReset) {
                 const base64 = await attachmentGenerator.createPasswordReset()
                 attachments.push({
-                  name: "password-reset",
+                  name: "password-reset.pdf",
                   base64,
                   type: "application/pdf",
                 })
@@ -233,7 +233,7 @@ class PostmarkService extends NotificationService {
 
             attachments = attachments.concat(
                 lbl.map((d) => ({
-                  name: "return-label",
+                  name: "return-label.pdf",
                   base64: d.base_64,
                   type: d.type,
                 }))
@@ -250,7 +250,7 @@ class PostmarkService extends NotificationService {
                 data.return_request.items
             )
             attachments.push({
-              name: "invoice",
+              name: "invoice.pdf",
               base64,
               type: "application/pdf",
             })
@@ -269,7 +269,7 @@ class PostmarkService extends NotificationService {
                 data
             )
             attachments.push({
-              name: "invoice",
+              name: "invoice.pdf",
               base64,
               type: "application/pdf",
             })
