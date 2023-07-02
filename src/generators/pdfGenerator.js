@@ -10,15 +10,17 @@ class PdfGenerator {
         this.item = 0
         this.lastHeight = 0
         this.margin = { top: 0, left: 0, right: 0, bottom: 0 }
+        this.empty = '__UNDEFINED__'
     }
 
     async startPdf(options) {
         const doc = new this.PDFDocument({
-            size: options?.pdf?.settings?.format,
-            margin: options?.pdf?.settings?.margin,
+            size: options?.pdf?.settings?.format ?? 'A4',
+            margin: options?.pdf?.settings?.margin ?? this.margin,
         })
-        this.margin = options?.pdf?.settings?.margin
-        this.top = this.margin.top
+        this.margin = options?.pdf?.settings?.margin ?? this.margin
+        this.empty = options?.pdf?.settings?.empty ?? this.empty
+        this.top = this.margin.top??0
         if (options?.pdf?.settings?.font && typeof options?.pdf?.settings?.font !== 'string') {
             try {
                 const fontBuffer = fs.readFileSync(`${process.cwd()}/src/fonts/${options?.pdf?.settings?.font?.file}`)
@@ -66,14 +68,26 @@ class PdfGenerator {
         }
     }
 
+    getVariable(keys, data){
+        let value = keys[0]==='item'?data?.items[this.item]:data
+        keys.shift()
+        keys.forEach(k=>value=value[k]??this.empty)
+        return value
+    }
+
     parseVariables(text, data) {
+        const ifRegex = /\{\{\s*if\s+([\w\s]+)\s*\}\}([\s\S]*?)\{\{\s*endif\s*\}\}/gi
+        text = text.replace(ifRegex, (match, statement, content)=>{
+            const keys = statement.startsWith('not ')?statement.split('not ')[1].split('.'):statement.split('.')
+            const value = this.getVariable(keys, data)
+            if(value === this.empty || value === false || value === "") return statement.startsWith('not ')?content:''
+            return statement.startsWith('not ')?'':content
+        })
         const regex = /{{\s(.*?)(?=\s}})\s}}/ig
         return text.replace(regex, (match, key)=>{
             let [keys, filter] = key.split(' | ')
             keys = keys.split('.')
-            let value = keys[0]==='item'?data?.items[this.item]:data
-            keys.shift()
-            keys.forEach(k=>value=value[k]??'__UNDEFINED__')
+            let value = this.getVariable(keys, data)
             if(filter) {
                 if(filter.startsWith('date')) {
                     const dateRegex = /date\(['"]([^'"]+)['"][\,\s]{0,2}([^))]*)\)/i
@@ -87,7 +101,7 @@ class PdfGenerator {
                     value = new Intl.NumberFormat(locale, {style:'currency',currency: data?.currency_code.toUpperCase()}).format(value/100)
                 }
             }
-            return value??'__UNDEFINED__'
+            return value??this.empty
         })
     }
 

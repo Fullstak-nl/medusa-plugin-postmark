@@ -38,7 +38,8 @@ const plugins = [
                         right: process.env.POSTMARK_PDF_MARGIN_RIGHT || '50',
                         bottom: process.env.POSTMARK_PDF_MARGIN_BOTTOM || '50',
                         left: process.env.POSTMARK_PDF_MARGIN_LEFT || '50'
-                    }
+                    },
+                    empty: "" // what to show if variable can't be found. Defaults to __UNDEFINED__
                 },
                 header: {
                     enabled: process.env.POSTMARK_PDF_HEADER_ENABLED || false,
@@ -259,7 +260,8 @@ This is used to end the loop of items in an order.
 In the template you can use variables. These are replaced by the plugin with the correct value.  
 To use a variable, use the following syntax: `{{ variable_name }}`, for example `{{ order.customer.first_name }}`.  
 Order item variables are available inside the `itemLoop` and `itemLoopEnd` elements, for example `{{ item.title }}`.  
-**Possible variables depend on your notification system.**  
+If you want to include (simple) if statements, use the following syntax: `{{ if variable_name }}...{{ endif }}`, or as a negative `{{ if not variable_name }}...{{ endif }}`.  
+**Possible variables depend on your notification system.**
 You can use the `options` object and every template has his own `data` object.   
 Depending on the plugin you use, _(almost)_ every plugin **that supports attachments** based on `medusa-plugin-sendgrid` has the same variable `order` after the `options` variable which holds all the plugin variables.  
 More information on the possible values that `order` can have can be found [here](https://docs.medusajs.com/add-plugins/sendgrid/#template-reference).
