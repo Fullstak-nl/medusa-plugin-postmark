@@ -76,7 +76,7 @@ class PdfGenerator {
     }
 
     parseVariables(text, data) {
-        const ifRegex = /\{\{\s*if\s+([\w\s]+)\s*\}\}([\s\S]*?)\{\{\s*endif\s*\}\}/gi
+        const ifRegex = /\{\{\s*if\s+([\w\s\.]+)\s*\}\}([\s\S]*?)\{\{\s*endif\s*\}\}/gi
         text = text.replace(ifRegex, (match, statement, content)=>{
             const keys = statement.startsWith('not ')?statement.split('not ')[1].split('.'):statement.split('.')
             const value = this.getVariable(keys, data)
