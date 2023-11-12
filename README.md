@@ -1,5 +1,12 @@
 # medusa-plugin-postmark
 
+[![stars - medusa-plugin-postmark](https://img.shields.io/github/stars/Fullstak-nl/medusa-plugin-postmark?style=social)](https://github.com/Fullstak-nl/medusa-plugin-postmark)
+[![forks - medusa-plugin-postmark](https://img.shields.io/github/forks/Fullstak-nl/medusa-plugin-postmark?style=social)](https://github.com/Fullstak-nl/medusa-plugin-postmark)
+
+[![GitHub tag](https://img.shields.io/github/tag/Fullstak-nl/medusa-plugin-postmark?include_prereleases=&sort=semver&color=blue)](https://github.com/Fullstak-nl/medusa-plugin-postmark/releases/)
+[![License](https://img.shields.io/badge/License-MIT-blue)](#license)
+[![issues - medusa-plugin-postmark](https://img.shields.io/github/issues/Fullstak-nl/medusa-plugin-postmark)](https://github.com/Fullstak-nl/medusa-plugin-postmark/issues)
+
 Notifications plugin for Medusa ecommerce server that sends transactional emails via [PostMark](https://postmarkapp.com/).
 
 ## Features
@@ -209,6 +216,7 @@ This is used to draw a horizontal line.
     "type": "hr"
 }
 ```
+
 ##### Optional:
 - `color` the color of the line (Hex codes `#ff0000`)
 - `width` the width of the line if you don't want it to be the full width of the page
@@ -271,6 +279,7 @@ More information on the possible values that `order` can have can be found [here
 At the moment the only variable you can use functions with is dates and currency.   
 - **Dates** are formatted using the `toLocaleDateString` function and can be used like this: `{{ order.placed_at | date('en-US',{'year': 'numeric', 'month': 'long', 'day': 'numeric'}) }}`.  
 - **Currency** is formatted using the `new Intl.NumberFormat()` function and can be used like this: `{{ order.total_price | currency('en-US') }}`.
+- **Country** can be formatted from ISO to the full country name and can be used like this: `{{ order.shipping_address.country_code | country }}`.  
 **Please make sure that the options are wrapped in single quotes.**
 
 ### Localisation
