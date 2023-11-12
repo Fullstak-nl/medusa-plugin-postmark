@@ -24,6 +24,7 @@ class PostmarkService extends NotificationService {
       cartService,
       fulfillmentService,
       totalsService,
+      GiftCardService,
     },
     options
   ) {
@@ -40,6 +41,7 @@ class PostmarkService extends NotificationService {
     this.cartService_ = cartService
     this.fulfillmentService_ = fulfillmentService
     this.totalsService_ = totalsService
+    this.giftCardService_ = GiftCardService
 
     this.client_ = new postmark.ServerClient(options.server_api)
   }
@@ -298,6 +300,8 @@ class PostmarkService extends NotificationService {
         return this.userPasswordResetData(eventData, attachmentGenerator)
       case "customer.password_reset":
         return this.customerPasswordResetData(eventData, attachmentGenerator)
+      case "gift_card.created":
+        return this.giftCardData(eventData, attachmentGenerator)
       default:
         return {}
     }
@@ -546,6 +550,16 @@ class PostmarkService extends NotificationService {
         currencyCode
       )} ${currencyCode}`,
       total: `${this.humanPrice_(total, currencyCode)} ${currencyCode}`,
+    }
+  }
+
+  async giftCardData({id}) {
+    let data = await this.giftCardService.retrieve(
+        id,{ relations:["order"]}
+    )
+    return {
+      ...data,
+      email: data.order.email ?? ''
     }
   }
   async orderPlacedData({ id }) {
