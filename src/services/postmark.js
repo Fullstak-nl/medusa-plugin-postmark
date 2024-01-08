@@ -24,7 +24,7 @@ class PostmarkService extends NotificationService {
       cartService,
       fulfillmentService,
       totalsService,
-      GiftCardService,
+      giftCardService,
     },
     options
   ) {
@@ -41,7 +41,7 @@ class PostmarkService extends NotificationService {
     this.cartService_ = cartService
     this.fulfillmentService_ = fulfillmentService
     this.totalsService_ = totalsService
-    this.giftCardService_ = GiftCardService
+    this.giftCardService_ = giftCardService
 
     this.client_ = new postmark.ServerClient(options.server_api)
   }
