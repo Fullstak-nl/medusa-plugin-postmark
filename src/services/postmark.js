@@ -303,7 +303,7 @@ class PostmarkService extends NotificationService {
       case "gift_card.created":
         return this.giftCardData(eventData, attachmentGenerator)
       default:
-        return {}
+        return eventData
     }
   }
 

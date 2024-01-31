@@ -76,7 +76,16 @@ const plugins = [
                     password_reset: process.env.POSTMARK_CUSTOMER_PASSWORD_RESET || null,
                 },
                 user: {
+                    created: process.env.POSTMARK_USER_CREATED || null,
                     password_reset: process.env.POSTMARK_USER_PASSWORD_RESET || null,
+                },
+                auth: {
+                    password_reset: process.env.POSTMARK_AUTH_PASSWORD_RESET || null,
+                    verify_account: process.env.POSTMARK_AUTH_VERIFY_ACCOUNT || null,
+                },
+                activity: {
+                    inactive_user: process.env.POSTMARK_ACTIVITY_INACTIVE_USER || null,
+                    inactive_customer: process.env.POSTMARK_ACTIVITY_INACTIVE_CUSTOMER || null,
                 }
             },
             upsell: {

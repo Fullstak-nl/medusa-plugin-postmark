@@ -364,7 +364,7 @@ class PdfGenerator {
                     imageOptions.align = layoutItem?.align
                 if(layoutItem?.valign)
                     imageOptions.valign = layoutItem?.valign
-                doc.image(`${process.cwd()}/src/images/${layoutItem.image}`, layoutItem.x, this.margin.left+layoutItem.y, imageOptions)
+                doc.image(`${process.cwd()}/src/images/${layoutItem.image}`, layoutItem.x, this.margin.left+(layoutItem?.y ?? 0), imageOptions)
                 break;
             case 'text':
                 if(layoutItem?.color)
