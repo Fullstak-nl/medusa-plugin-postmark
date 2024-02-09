@@ -310,18 +310,24 @@ class PostmarkService extends NotificationService {
   async sendNotification(event, eventData, attachmentGenerator) {
     let group = undefined;
     let action = undefined;
+
+    // Check if this.options_.events is a function and call it if it is
+    let events = typeof this.options_.events === 'function' ? await this.options_.events() : this.options_.events;
+    console.log(events);
+
     try {
       const event_ = event.split(".",2)
       group = event_[0]
       action = event_[1]
-      if(typeof group === "undefined" || typeof action === "undefined" || this.options_.events[group] === undefined || this.options_.events[group][action] === undefined)
+
+      if(typeof group === "undefined" || typeof action === "undefined" || events[group] === undefined || events[group][action] === undefined)
         return false
     } catch (err) {
       console.error(err)
       return false
     }
 
-    let templateId = this.options_.events[group][action]
+    let templateId = events[group][action]
     const data = await this.fetchData(event, eventData, attachmentGenerator)
     const attachments = await this.fetchAttachments(
       event,

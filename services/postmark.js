@@ -644,46 +644,60 @@ var PostmarkService = /*#__PURE__*/function (_NotificationService) {
     value: function () {
       var _sendNotification = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9(event, eventData, attachmentGenerator) {
         var _data$email, _data$customer, _this$options_11;
-        var group, action, event_, templateId, data, attachments, sendOptions;
+        var group, action, events, event_, templateId, data, attachments, sendOptions;
         return _regeneratorRuntime().wrap(function _callee9$(_context11) {
           while (1) switch (_context11.prev = _context11.next) {
             case 0:
               group = undefined;
-              action = undefined;
-              _context11.prev = 2;
-              event_ = event.split(".", 2);
-              group = event_[0];
-              action = event_[1];
-              if (!(typeof group === "undefined" || typeof action === "undefined" || this.options_.events[group] === undefined || this.options_.events[group][action] === undefined)) {
+              action = undefined; // Check if this.options_.events is a function and call it if it is
+              if (!(typeof this.options_.events === 'function')) {
                 _context11.next = 8;
                 break;
               }
-              return _context11.abrupt("return", false);
-            case 8:
-              _context11.next = 14;
+              _context11.next = 5;
+              return this.options_.events();
+            case 5:
+              _context11.t0 = _context11.sent;
+              _context11.next = 9;
               break;
-            case 10:
+            case 8:
+              _context11.t0 = this.options_.events;
+            case 9:
+              events = _context11.t0;
               _context11.prev = 10;
-              _context11.t0 = _context11["catch"](2);
-              console.error(_context11.t0);
-              return _context11.abrupt("return", false);
-            case 14:
-              templateId = this.options_.events[group][action];
-              _context11.next = 17;
-              return this.fetchData(event, eventData, attachmentGenerator);
-            case 17:
-              data = _context11.sent;
-              _context11.next = 20;
-              return this.fetchAttachments(event, data, attachmentGenerator);
-            case 20:
-              attachments = _context11.sent;
-              if (data.locale && _typeof(templateId) === "object") templateId = templateId[data.locale] || Object.values(templateId)[0]; // Fallback to first template if locale is not found
-              if (!(templateId === null)) {
-                _context11.next = 24;
+              event_ = event.split(".", 2);
+              group = event_[0];
+              action = event_[1];
+              if (!(typeof group === "undefined" || typeof action === "undefined" || events[group] === undefined || events[group][action] === undefined)) {
+                _context11.next = 16;
                 break;
               }
               return _context11.abrupt("return", false);
-            case 24:
+            case 16:
+              _context11.next = 22;
+              break;
+            case 18:
+              _context11.prev = 18;
+              _context11.t1 = _context11["catch"](10);
+              console.error(_context11.t1);
+              return _context11.abrupt("return", false);
+            case 22:
+              templateId = events[group][action];
+              _context11.next = 25;
+              return this.fetchData(event, eventData, attachmentGenerator);
+            case 25:
+              data = _context11.sent;
+              _context11.next = 28;
+              return this.fetchAttachments(event, data, attachmentGenerator);
+            case 28:
+              attachments = _context11.sent;
+              if (data.locale && _typeof(templateId) === "object") templateId = templateId[data.locale] || Object.values(templateId)[0]; // Fallback to first template if locale is not found
+              if (!(templateId === null)) {
+                _context11.next = 32;
+                break;
+              }
+              return _context11.abrupt("return", false);
+            case 32:
               sendOptions = {
                 From: this.options_.from,
                 to: (_data$email = data.email) !== null && _data$email !== void 0 ? _data$email : data === null || data === void 0 ? void 0 : (_data$customer = data.customer) === null || _data$customer === void 0 ? void 0 : _data$customer.email,
@@ -701,7 +715,7 @@ var PostmarkService = /*#__PURE__*/function (_NotificationService) {
                   };
                 });
               }
-              _context11.next = 29;
+              _context11.next = 37;
               return this.client_.sendEmailWithTemplate(sendOptions).then(function () {
                 return {
                   to: sendOptions.to,
@@ -716,13 +730,13 @@ var PostmarkService = /*#__PURE__*/function (_NotificationService) {
                   data: sendOptions
                 };
               });
-            case 29:
+            case 37:
               return _context11.abrupt("return", _context11.sent);
-            case 30:
+            case 38:
             case "end":
               return _context11.stop();
           }
-        }, _callee9, this, [[2, 10]]);
+        }, _callee9, this, [[10, 18]]);
       }));
       function sendNotification(_x7, _x8, _x9) {
         return _sendNotification.apply(this, arguments);
