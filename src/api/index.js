@@ -43,8 +43,8 @@ export default (container) => {
             },
             templates: {
                invoice: 'createInvoice.json',
-               credit_note: process.env.POSTMARK_PDF_CREDIT_NOTE_TEMPLATE || null,
-               return_invoice: process.env.POSTMARK_PDF_RETURN_INVOICE_TEMPLATE || null
+               credit_note: process.env.POSTMARK_PDF_CREDIT_NOTE_TEMPLATE || undefined,
+               return_invoice: process.env.POSTMARK_PDF_RETURN_INVOICE_TEMPLATE || undefined
             }
          },
       }
@@ -226,7 +226,7 @@ export default (container) => {
 
    const  normalizeThumbUrl_ = (url) => {
       if (!url)
-         return null
+         return 
       else if (url.startsWith("http"))
          return url
       else if (url.startsWith("//"))

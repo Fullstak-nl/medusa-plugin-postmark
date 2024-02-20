@@ -1,0 +1,31 @@
+# GH Action workflow to build and publish this package to the GH Package Registry
+# This is only intended to publish development versions of the package.
+
+name: Publish to GitHub Package Registry
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com/
+      - run: npm install
+      - run: npm run prepare
+      - name: Publish
+        run: |
+          jq '.name="@${{ github.repository_owner }}/${{ github.event.repository.name }}"' package.json > package.json.tmp
+          mv package.json.tmp package.json
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
