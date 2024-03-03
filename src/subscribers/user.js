@@ -7,14 +7,14 @@ class UserSubscriber {
            await this.postmarkService_.sendNotification(
                "user.password_reset",
                data,
-               null
+               undefined
            )
        })
        this.eventBus_.subscribe("user.created", async (data) => {
            await this.postmarkService_.sendNotification(
                "user.created",
                data,
-               null
+               undefined
            )
        })
 
@@ -22,14 +22,14 @@ class UserSubscriber {
            await this.postmarkService_.sendNotification(
                "auth.password_reset",
                data,
-               null
+               undefined
            )
        })
        this.eventBus_.subscribe("auth.verify_account", async (data) => {
            await this.postmarkService_.sendNotification(
                "auth.verify_account",
                data,
-               null
+               undefined
            )
        })
 
@@ -37,14 +37,14 @@ class UserSubscriber {
            await this.postmarkService_.sendNotification(
                "activity.inactive_user",
                data,
-               null
+               undefined
            )
        })
        this.eventBus_.subscribe("activity.inactive_customer", async (data) => {
            await this.postmarkService_.sendNotification(
                "activity.inactive_customer",
                data,
-               null
+               undefined
            )
        })
    }

@@ -268,13 +268,13 @@ class PdfGenerator {
         })
         this.margin = options?.pdf?.settings?.margin ?? this.margin
         this.empty = options?.pdf?.settings?.empty ?? this.empty
-        this.top = this.margin.top??0
+        this.top = this.margin.top ?? 0
         if (options?.pdf?.settings?.font && typeof options?.pdf?.settings?.font !== 'string') {
             try {
                 const fontBuffer = fs.readFileSync(`${process.cwd()}/src/fonts/${options?.pdf?.settings?.font?.file}`)
                 doc.registerFont(options?.pdf?.settings?.font?.name, fontBuffer)
-            }catch (e) {
-                console.log("Font error: ",e)
+            } catch (e) {
+                console.log("Font error:", e)
             }
         }
         return doc
@@ -285,14 +285,14 @@ class PdfGenerator {
         if (header && header?.enabled) {
             try {
                 let layout = []
-                if(header?.content) {
+                if (header?.content) {
                     const layoutJSON = fs.readFileSync(`${process.cwd()}/src/layouts/${header.content}`)
                     layout = JSON.parse(layoutJSON)
                 }
-                layout.forEach((layoutItem) => this.generateElement(doc,layoutItem))
-                this.top += header?.height??50
-            }catch (e) {
-                console.log("Header error: ",e)
+                layout.forEach((layoutItem) => this.generateElement(doc, layoutItem))
+                this.top += header?.height ?? 50
+            } catch (e) {
+                console.log("Header error:", e)
                 return
             }
         }
@@ -303,173 +303,168 @@ class PdfGenerator {
         if (footer && footer?.enabled) {
             try {
                 let layout = []
-                if(footer?.content) {
+                if (footer?.content) {
                     const layoutJSON = fs.readFileSync(`${process.cwd()}/src/layouts/${footer.content}`)
                     layout = JSON.parse(layoutJSON)
                 }
-                layout.forEach((layoutItem) => this.generateElement(doc,layoutItem))
-                this.top += footer?.height??50
-            }catch (e) {
-                console.log("Footer error: ",e)
+                layout.forEach((layoutItem) => this.generateElement(doc, layoutItem))
+                this.top += footer?.height ?? 50
+            } catch (e) {
+                console.log("Footer error:", e)
                 return
             }
         }
     }
 
-    getVariable(keys, data){
-        let value = keys[0]==='item'?data?.items[this.item]:data
+    getVariable(keys, data) {
+        let value = keys[0] === 'item' ? data?.items[this.item] : data
         keys.shift()
-        keys.forEach(k=>value=value[k]??this.empty)
+        keys.forEach(k => value = value[k] ?? this.empty)
         return value
     }
 
     parseVariables(text, data) {
-        const ifRegex = /\{\{\s*if\s+([\w\s\.]+)\s*\}\}([\s\S]*?)\{\{\s*endif\s*\}\}/gi
-        text = text.replace(ifRegex, (match, statement, content)=>{
-            const keys = statement.startsWith('not ')?statement.split('not ')[1].split('.'):statement.split('.')
+        const ifRegex = /\{\{\s*if\s+([\w\s.]+)\s*\}\}([\s\S]*?)\{\{\s*endif\s*\}\}/gi
+        text = text.replace(ifRegex, (match, statement, content) => {
+            const keys = statement.startsWith('not ') ? statement.split('not ')[1].split('.') : statement.split('.')
             const value = this.getVariable(keys, data)
-            if(value === this.empty || value === false || value === "") return statement.startsWith('not ')?content:''
-            return statement.startsWith('not ')?'':content
+            if (value === this.empty || value === false || value === "") return statement.startsWith('not ') ? content : ''
+            return statement.startsWith('not ') ? '' : content
         })
         const regex = /{{\s(.*?)(?=\s}})\s}}/ig
-        return text.replace(regex, (match, key)=>{
+        return text.replace(regex, (match, key) => {
             let [keys, filter] = key.split(' | ')
             keys = keys.split('.')
             let value = this.getVariable(keys, data)
-            if(filter) {
-                if(filter.startsWith('date')) {
-                    const dateRegex = /date\(['"]([^'"]+)['"][\,\s]{0,2}([^))]*)\)/i
+            if (filter) {
+                if (filter.startsWith('date')) {
+                    const dateRegex = /date\(['"]([^'"]+)['"][,\s]{0,2}([^))]*)\)/i
                     const [_, locale, format] = dateRegex.exec(filter)
-                    value = new Date(value).toLocaleDateString(locale, JSON.parse(format.replaceAll("'",'"'))??{})
-                }else if(filter.startsWith('currency')) {
+                    value = new Date(value).toLocaleDateString(locale, JSON.parse(format.replaceAll("'", '"')) ?? {})
+                } else if (filter.startsWith('currency')) {
                     const numberRegex = /currency\(['"]([^'"]+)['"]\)/i
                     const [_, locale] = numberRegex.exec(filter)
-                    if(typeof value === 'string')
-                        value = parseFloat(value.replace(data?.currency_code.toUpperCase(),''))
-                    value = new Intl.NumberFormat(locale, {style:'currency',currency: data?.currency_code.toUpperCase()}).format(value/100)
-                }else if(filter.startsWith('country')){
-                    if(typeof value === 'string')
+                    if (typeof value === 'string')
+                        value = parseFloat(value.replace(data?.currency_code.toUpperCase(), ''))
+                    value = new Intl.NumberFormat(locale, { style: 'currency', currency: data?.currency_code.toUpperCase() }).format(value / 100)
+                } else if (filter.startsWith('country')) {
+                    if (typeof value === 'string')
                         value = isoAlpha2Countries[value.toUpperCase()] ?? ""
                 }
             }
-            return value??this.empty
+            return value ?? this.empty
         })
     }
 
     generateElement(doc, layoutItem, data) {
         switch (layoutItem.type) {
-            case 'image':
-                const imageOptions = {"fit":layoutItem?.fit}
-                if(layoutItem?.align)
-                    imageOptions.align = layoutItem?.align
-                if(layoutItem?.valign)
-                    imageOptions.valign = layoutItem?.valign
-                doc.image(`${process.cwd()}/src/images/${layoutItem.image}`, layoutItem.x, this.margin.left+(layoutItem?.y ?? 0), imageOptions)
+            case 'image': {
+                const imageOptions = {
+                    'fit': layoutItem?.fit
+                };
+                if (layoutItem?.align) imageOptions.align = layoutItem?.align;
+
+                if (layoutItem?.valign) imageOptions.valign = layoutItem?.valign;
+
+                doc.image(`${process.cwd()}/src/images/${layoutItem.image}`, layoutItem.x, this.margin.left + (layoutItem?.y ?? 0), imageOptions);
                 break;
-            case 'text':
-                if(layoutItem?.color)
-                    doc.fillColor(layoutItem?.color)
-                if(layoutItem?.font)
-                    doc.font(layoutItem?.font)
-                if(layoutItem?.size)
-                    doc.fontSize(layoutItem?.size)
-                if(layoutItem?.width && typeof layoutItem?.width === 'string')
-                    layoutItem.width = parseInt(doc.page.width - this.margin.left - this.margin.right)
-                else if(layoutItem?.width && typeof layoutItem?.width === 'number')
-                    layoutItem.width = parseInt(layoutItem?.width)
-                const parsedText = this.parseVariables(layoutItem?.text, data)
-                const textOptions = Object.fromEntries(Object.entries(layoutItem).filter(([key]) => !['type','color','font','size','text', 'x', 'y'].includes(key)))
-                this.lastHeight = doc.heightOfString(parsedText,textOptions)
-                if(layoutItem?.x||layoutItem?.y)
-                    doc.text(this.parseVariables(layoutItem?.text, data), this.margin.left + (layoutItem?.x??0), layoutItem?.y??this.top, textOptions)
+            }
+            case 'text': {
+                if (layoutItem?.color) doc.fillColor(layoutItem?.color);
+
+                if (layoutItem?.font) doc.font(layoutItem?.font);
+
+                if (layoutItem?.size) doc.fontSize(layoutItem?.size);
+
+                if (layoutItem?.width && typeof layoutItem?.width === 'string') layoutItem.width = parseInt(doc.page.width - this.margin.left - this.margin.right);
+                else if (layoutItem?.width && typeof layoutItem?.width === 'number') layoutItem.width = parseInt(layoutItem?.width);
+
+                const parsedText = this.parseVariables(layoutItem?.text, data);
+                const textOptions = Object.fromEntries(Object.entries(layoutItem).filter(([key]) => !['type', 'color', 'font', 'size', 'text', 'x', 'y'].includes(key)));
+                this.lastHeight = doc.heightOfString(parsedText, textOptions);
+                if (layoutItem?.x || layoutItem?.y) doc.text(this.parseVariables(layoutItem?.text, data), this.margin.left + (layoutItem?.x ?? 0), layoutItem?.y ?? this.top, textOptions);
                 else
-                    doc.text(this.parseVariables(layoutItem?.text, data), this.margin.left, this.top, textOptions)
-                //this.top += textHeight
+                    doc.text(this.parseVariables(layoutItem?.text, data), this.margin.left, this.top, textOptions);
                 break;
-            case 'moveDown':
-                //doc.moveDown(layoutItem?.lines??1)
-                // fake movedown by altering this.top + last fontsize * 1.5 or use measured height
-                if(layoutItem?.useMeasure)
-                    this.top += parseInt(this.lastHeight)
+            }
+            case 'moveDown': {
+                if (layoutItem?.useMeasure) this.top += parseInt(this.lastHeight);
                 else
-                    this.top += (parseInt(doc._fontSize) * 1.5) * (layoutItem?.lines??1)
+                    this.top += parseInt(doc._fontSize) * 1.5 * (layoutItem?.lines ?? 1);
                 break;
-            case 'hr':
-                doc
-                    .strokeColor(layoutItem?.color??'#aaaaaa')
-                    .lineWidth(layoutItem?.width??1)
-                    .moveTo(layoutItem?.x??this.margin.left, layoutItem?.y??this.top)
-                    .lineTo(layoutItem?.width??(doc.page.width-this.margin.right), layoutItem?.y??this.top)
-                    .stroke()
-                this.top += layoutItem?.height??10
+            }
+            case 'hr': {
+                doc.strokeColor(layoutItem?.color ?? '#aaaaaa').lineWidth(layoutItem?.width ?? 1).moveTo(layoutItem?.x ?? this.margin.left, layoutItem?.y ?? this.top).lineTo(layoutItem?.width ?? doc.page.width - this.margin.right, layoutItem?.y ?? this.top).stroke();
+                this.top += layoutItem?.height ?? 10;
                 break;
-            case 'tableRow':
-                if(layoutItem?.color)
-                    doc.fillColor(layoutItem?.color)
-                if(layoutItem?.font)
-                    doc.font(layoutItem?.font)
-                if(layoutItem?.size)
-                    doc.fontSize(layoutItem?.size)
-                let xPos = this.margin.left+(layoutItem?.x??0)
-                layoutItem?.columns?.forEach((column) => {
-                    if(column?.color)
-                        doc.fillColor(column?.color)
-                    if(column?.font)
-                        doc.font(column?.font)
-                    if(column?.size)
-                        doc.fontSize(column?.size)
-                    if(column?.width && typeof column?.width === 'string')
-                        column.width = parseInt(doc.page.width - this.margin.left - this.margin.right)
-                    else if(column?.width && typeof column?.width === 'number')
-                        column.width = parseInt(column?.width)
-                    const parsedText = this.parseVariables(column?.text, data)
-                    const columnOptions = Object.fromEntries(Object.entries(column).filter(([key]) => !['type','color','font','size','text', 'x', 'y'].includes(key)))
-                    doc.text(parsedText, xPos, column?.y??this.top, columnOptions)
-                    if(column?.width)
-                        xPos += column?.width
+            }
+            case 'tableRow': {
+                if (layoutItem?.color) doc.fillColor(layoutItem?.color);
+
+                if (layoutItem?.font) doc.font(layoutItem?.font);
+
+                if (layoutItem?.size) doc.fontSize(layoutItem?.size);
+
+                let xPos = this.margin.left + (layoutItem?.x ?? 0);
+                layoutItem?.columns?.forEach(column => {
+                    if (column?.color) doc.fillColor(column?.color);
+
+                    if (column?.font) doc.font(column?.font);
+
+                    if (column?.size) doc.fontSize(column?.size);
+
+                    if (column?.width && typeof column?.width === 'string') column.width = parseInt(doc.page.width - this.margin.left - this.margin.right);
+                    else if (column?.width && typeof column?.width === 'number') column.width = parseInt(column?.width);
+
+                    const parsedText = this.parseVariables(column?.text, data);
+                    const columnOptions = Object.fromEntries(Object.entries(column).filter(([key]) => !['type', 'color', 'font', 'size', 'text', 'x', 'y'].includes(key)));
+                    doc.text(parsedText, xPos, column?.y ?? this.top, columnOptions);
+                    if (column?.width) xPos += column?.width;
                     else
-                        xPos += doc.widthOfString(parsedText, columnOptions)
-                })
-                this.top += doc._fontSize * 1.5
+                        xPos += doc.widthOfString(parsedText, columnOptions);
+                });
+                this.top += doc._fontSize * 1.5;
                 break;
-            default:
+            }
+            default: {
                 break;
+            }
         }
     }
 
-    async createInvoice(options, order){
+    async createInvoice(options, order) {
 
         const doc = await this.startPdf(options)
         await this.generateHeader(doc, options)
-        try{
+        try {
             const layoutJSON = fs.readFileSync(`${process.cwd()}/src/layouts/${options?.pdf?.templates?.invoice}`)
             const layout = JSON.parse(layoutJSON)
             let itemLayout = []
             let itemLayoutRunning = false;
             Object.values(layout).forEach((layoutItem) => {
-                if(layoutItem?.type==='itemLoop'||(itemLayoutRunning === true&&layoutItem?.type!=='itemLoopEnd')) {
+                if (layoutItem?.type === 'itemLoop' || (itemLayoutRunning === true && layoutItem?.type !== 'itemLoopEnd')) {
                     itemLayoutRunning = true
                     itemLayout.push(layoutItem)
-                }else if(layoutItem?.type==='itemLoopEnd') {
+                } else if (layoutItem?.type === 'itemLoopEnd') {
                     itemLayoutRunning = false
                     order.items.forEach((item, index) => {
                         this.item = index
-                        itemLayout.forEach((layoutItem) => this.generateElement(doc,layoutItem, order))
+                        itemLayout.forEach((layoutItem) => this.generateElement(doc, layoutItem, order))
                     })
-                }else
+                } else
                     this.generateElement(doc, layoutItem, order)
             })
-        }catch (e) {
-            console.log("Invoice error: ",e)
+        } catch (e) {
+            console.log("Invoice error:", e)
         }
         await this.generateFooter(doc, options)
-        try{
+        try {
             doc.end()
             const docBuffer = await this.getStream.buffer(doc)
             return docBuffer.toString('base64')
-        }catch (e) {
-            console.log("Invoice error: ",e)
-            return null
+        } catch (e) {
+            console.log("Invoice error:", e)
+            return
         }
     }
 
@@ -479,7 +474,7 @@ class PdfGenerator {
             margin: 50
         });
 
-        const {shipping_address, billing_address} = order;
+        const { shipping_address, billing_address } = order;
 
         doc
             .font('Helvetica-Bold')

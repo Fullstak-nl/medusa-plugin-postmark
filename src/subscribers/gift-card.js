@@ -7,7 +7,7 @@ class GiftCardSubscriber {
             await this.postmarkService_.sendNotification(
                 "gift_card.created",
                 data,
-                null
+                undefined
             )
         })
     }

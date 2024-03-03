@@ -1,8 +1,8 @@
 {
    "name": "medusa-plugin-postmark",
-   "version": "4.6.1",
+   "version": "5.0.0",
    "description": "Postmark notification plugin for MedusaJS",
-   "main": "index.js",
+   "main": "dist/index.js",
    "repository": {
       "type": "git",
       "url": "https://github.com/Fullstak-nl/medusa-plugin-postmark"
@@ -17,18 +17,23 @@
       "@babel/plugin-transform-instanceof": "^7.8.3",
       "@babel/plugin-transform-runtime": "^7.7.6",
       "@babel/preset-env": "^7.7.5",
+      "@babel/preset-react": "^7.23.3",
       "@babel/register": "^7.7.4",
       "@babel/runtime": "^7.9.6",
       "@medusajs/medusa": "^1.7.5",
       "client-sessions": "^0.8.0",
       "cross-env": "^5.2.1",
       "jest": "^25.5.2",
-      "medusa-interfaces": "^1.3.3"
+      "medusa-interfaces": "^1.3.3",
+      "oxlint": "^0.2.9"
    },
    "scripts": {
-      "build": "babel src --out-dir . --ignore '**/__tests__','**/__mocks__'",
-      "prepare": "cross-env NODE_ENV=production yarn run build",
-      "watch": "babel -w src --out-dir . --ignore **/__tests__",
+      "clean": "cross-env ./node_modules/.bin/rimraf dist",
+      "prepare": "cross-env NODE_ENV=production npm run build:server && medusa-admin bundle",
+      "build": "cross-env npm run clean && npm run build:server && npm run build:admin",
+      "build:server": "cross-env npm run clean && tsc -p tsconfig.server.json",
+      "build:admin": "cross-env medusa-admin build",
+      "watch": "babel -w src --out-dir dist --ignore **/__tests__",
       "test": "jest --passWithNoTests"
    },
    "peerDependencies": {
@@ -36,13 +41,17 @@
    },
    "dependencies": {
       "@babel/plugin-transform-classes": "^7.9.5",
+      "@medusajs/admin": "^7.1.11",
+      "@medusajs/icons": "^1.2.0",
       "body-parser": "^1.19.0",
       "express": "^4.17.1",
       "get-stream": "^6.0.1",
       "medusa-core-utils": "^1.1.37",
+      "medusa-react": "^9.0.15",
       "medusa-test-utils": "^1.1.37",
       "pdfkit": "^0.13.0",
-      "postmark": "^3.0.15"
+      "postmark": "^3.0.15",
+      "react-email-editor": "^1.7.9"
    },
    "keywords": [
       "medusa-plugin",

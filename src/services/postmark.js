@@ -2,14 +2,16 @@ import { humanizeAmount, zeroDecimalCurrencies } from "medusa-core-utils"
 import { DateTime } from "luxon";
 import { NotificationService } from "medusa-interfaces";
 import { EntityManager, IsNull, Not, LessThan } from "typeorm";
+import EmailTemplate from "../models/email-template";
 import * as postmark from "postmark"
+import { NotificationEvent } from "../types/email-template";
 
 class PostmarkService extends NotificationService {
   static identifier = "postmark";
-  manager_ = null;
-  orderRepository_ = null;
-  cartRepository_ = null;
-  lineItemRepository_ = null;
+  manager_ = undefined;
+  orderRepository_ = undefined;
+  cartRepository_ = undefined;
+  lineItemRepository_ = undefined;
 
   /**
    * @param {Object} options - options defined in `medusa-config.js`
@@ -28,7 +30,7 @@ class PostmarkService extends NotificationService {
     },
     options
   ) {
-    super({manager,orderRepository,cartRepository,lineItemRepository})
+    super({ manager, orderRepository, cartRepository, lineItemRepository })
 
     this.options_ = options
 
@@ -42,12 +44,13 @@ class PostmarkService extends NotificationService {
     this.fulfillmentService_ = fulfillmentService
     this.totalsService_ = totalsService
     this.giftCardService_ = giftCardService
+    this.emailTemplateRepository_ = manager.getRepository(EmailTemplate)
 
     this.client_ = new postmark.ServerClient(options.server_api)
   }
 
   async getAbandonedCarts() {
-    if(!this.options_?.abandoned_cart || !this.options_?.abandoned_cart?.enabled || !this.options_?.abandoned_cart?.first)
+    if (!this.options_?.abandoned_cart || !this.options_?.abandoned_cart?.enabled || !this.options_?.abandoned_cart?.first)
       return;
     console.log("Getting abandoned carts")
     const options = this.options_?.abandoned_cart;
@@ -64,23 +67,23 @@ class PostmarkService extends NotificationService {
     let abandonedCarts = [];
     for (const cart of carts) {
       let orderCheck = false;
-      try{
-         orderCheck = await this.orderService_.retrieveByCartId(cart.id)
-      }catch (e) {
+      try {
+        orderCheck = await this.orderService_.retrieveByCartId(cart.id)
+      } catch (e) {
         orderCheck = false;
       }
-      const cartData = await this.cartService_.retrieve(cart.id, {relations: ["items","shipping_address","region"]})
-      if(orderCheck) continue;
-      if (cartData.items.find((li) => li?.updated_at <= firstCheck)!==undefined && cart?.metadata?.third_abandonedcart_mail !== true)
+      const cartData = await this.cartService_.retrieve(cart.id, { relations: ["items", "shipping_address", "region"] })
+      if (orderCheck) continue;
+      if (cartData.items.find((li) => li?.updated_at <= firstCheck) !== undefined && cart?.metadata?.third_abandonedcart_mail !== true)
         abandonedCarts.push(cartData);
     }
-    if(abandonedCarts.length === 0) return;
+    if (abandonedCarts.length === 0) return;
 
     for (const cart of abandonedCarts) {
       const check = cart.items.sort((a, b) => {
         return b.updated_at.getTime() - a.updated_at.getTime();
       })[0].updated_at;
-      const items = this.processItems_(cart.items, cart?.region?.includes_tax?0:(cart?.region?.tax_rate/100), cart?.region?.currency_code.toUpperCase())
+      const items = this.processItems_(cart.items, cart?.region?.includes_tax ? 0 : (cart?.region?.tax_rate / 100), cart?.region?.currency_code.toUpperCase())
       const sendOptions = {
         From: this.options_.from,
         to: cart.email,
@@ -92,51 +95,57 @@ class PostmarkService extends NotificationService {
         }
       }
       if (check < secondCheck) {
-        if(check < thirdCheck){
-          if(options?.third?.template&&cart?.metadata?.third_abandonedcart_mail !== true) {
+        if (check < thirdCheck) {
+          if (options?.third?.template && cart?.metadata?.third_abandonedcart_mail !== true) {
             sendOptions.TemplateId = options?.third?.template
             await this.client_.sendEmailWithTemplate(sendOptions)
-                .then(async () => {
-                  await cartRepository.update(cart.id,{ metadata: {
-                      ...cart.metadata || {},
-                      third_abandonedcart_mail: true
-                    }})
-                })
-                .catch((error) => {
-                  console.error(error)
-                  return { to: sendOptions.to, status: 'failed', data: sendOptions }
-                })
-          }
-        }else{
-          if(options?.second?.template&&cart?.metadata?.second_abandonedcart_mail !== true) {
-            sendOptions.TemplateId = options?.second?.template
-            await this.client_.sendEmailWithTemplate(sendOptions)
-                .then(async () => {
-                  await cartRepository.update(cart.id,{ metadata: {
-                      ...cart.metadata || {},
-                      second_abandonedcart_mail: true
-                    }})
-                })
-                .catch((error) => {
-                  console.error(error)
-                  return { to: sendOptions.to, status: 'failed', data: sendOptions }
-                })
-          }
-        }
-      }else{
-        if(options?.first?.template&&cart?.metadata?.first_abandonedcart_mail !== true) {
-          sendOptions.TemplateId = options?.first?.template
-          await this.client_.sendEmailWithTemplate(sendOptions)
               .then(async () => {
-                await cartRepository.update(cart.id,{ metadata: {
+                await cartRepository.update(cart.id, {
+                  metadata: {
                     ...cart.metadata || {},
-                    first_abandonedcart_mail: true
-                  }})
+                    third_abandonedcart_mail: true
+                  }
+                })
               })
               .catch((error) => {
                 console.error(error)
                 return { to: sendOptions.to, status: 'failed', data: sendOptions }
               })
+          }
+        } else {
+          if (options?.second?.template && cart?.metadata?.second_abandonedcart_mail !== true) {
+            sendOptions.TemplateId = options?.second?.template
+            await this.client_.sendEmailWithTemplate(sendOptions)
+              .then(async () => {
+                await cartRepository.update(cart.id, {
+                  metadata: {
+                    ...cart.metadata || {},
+                    second_abandonedcart_mail: true
+                  }
+                })
+              })
+              .catch((error) => {
+                console.error(error)
+                return { to: sendOptions.to, status: 'failed', data: sendOptions }
+              })
+          }
+        }
+      } else {
+        if (options?.first?.template && cart?.metadata?.first_abandonedcart_mail !== true) {
+          sendOptions.TemplateId = options?.first?.template
+          await this.client_.sendEmailWithTemplate(sendOptions)
+            .then(async () => {
+              await cartRepository.update(cart.id, {
+                metadata: {
+                  ...cart.metadata || {},
+                  first_abandonedcart_mail: true
+                }
+              })
+            })
+            .catch((error) => {
+              console.error(error)
+              return { to: sendOptions.to, status: 'failed', data: sendOptions }
+            })
         }
       }
     }
@@ -144,8 +153,8 @@ class PostmarkService extends NotificationService {
 
   async remindUpsellOrders() {
     //console.log(this.options_)
-    if(!this.options_?.upsell || !this.options_?.upsell?.enabled || !this.options_?.upsell?.collection || !this.options_?.upsell?.delay || !this.options_?.upsell?.template)
-        return []
+    if (!this.options_?.upsell || !this.options_?.upsell?.enabled || !this.options_?.upsell?.collection || !this.options_?.upsell?.delay || !this.options_?.upsell?.template)
+      return []
     const orderRepo = this.manager_.withRepository(this.orderRepository_);
     const options = this.options_.upsell;
     const validThrough = DateTime.now().minus({ days: options.valid }).toLocaleString(DateTime.DATE_FULL)
@@ -154,24 +163,24 @@ class PostmarkService extends NotificationService {
     })
 
     for (const order of orders) {
-      if(order.metadata?.upsell_sent || order.created_at < new Date(new Date().getTime() - parseInt(options.delay) * 60 * 60 * 24 * 1000))
+      if (order.metadata?.upsell_sent || order.created_at < new Date(new Date().getTime() - parseInt(options.delay) * 60 * 60 * 24 * 1000))
         continue
       const orderData = await this.orderService_.retrieve(order.id, {
         select: ["id"],
         relations: [
-          "customer","items","items.variant","items.variant.product"
+          "customer", "items", "items.variant", "items.variant.product"
         ],
       })
       let upsell = true
       for (const item of orderData.items) {
-          if(item?.variant?.product?.collection_id !== options.collection)
-              upsell = false
+        if (item?.variant?.product?.collection_id !== options.collection)
+          upsell = false
       }
-      if(upsell){
+      if (upsell) {
         if (options.template.includes(",")) {
-            // VERY simple setup for A/B testing
-            options.template = options.template.split(",")
-            options.template = options.template[Math.floor(Math.random() * options.template.length)]
+          // VERY simple setup for A/B testing
+          options.template = options.template.split(",")
+          options.template = options.template[Math.floor(Math.random() * options.template.length)]
         }
         const sendOptions = {
           From: this.options_.from,
@@ -186,18 +195,18 @@ class PostmarkService extends NotificationService {
 
         //update order metadata
         order.metadata = {
-            ...order.metadata,
-            upsell_sent: true
+          ...order.metadata,
+          upsell_sent: true
         }
         //console.log("Sending upsell email to " + orderData.customer.email + " for order " + orderData.id)
         await this.client_.sendEmailWithTemplate(sendOptions)
-            .then(async () => {
-              await this.orderService_.update(order.id, {metadata: order.metadata})
-            })
-            .catch((error) => {
-              console.error(error)
-              return { to: sendOptions.to, status: 'failed', data: sendOptions }
-            })
+          .then(async () => {
+            await this.orderService_.update(order.id, { metadata: order.metadata })
+          })
+          .catch((error) => {
+            console.error(error)
+            return { to: sendOptions.to, status: 'failed', data: sendOptions }
+          })
       }
     }
   }
@@ -206,15 +215,15 @@ class PostmarkService extends NotificationService {
     let attachments = []
     switch (event) {
       case "user.password_reset": {
-        try{
-            if (attachmentGenerator && attachmentGenerator.createPasswordReset) {
-                const base64 = await attachmentGenerator.createPasswordReset()
-                attachments.push({
-                  name: "password-reset.pdf",
-                  base64,
-                  type: "application/pdf",
-                })
-            }
+        try {
+          if (attachmentGenerator && attachmentGenerator.createPasswordReset) {
+            const base64 = await attachmentGenerator.createPasswordReset()
+            attachments.push({
+              name: "password-reset.pdf",
+              base64,
+              type: "application/pdf",
+            })
+          }
         } catch (err) {
           console.error(err)
         }
@@ -223,33 +232,33 @@ class PostmarkService extends NotificationService {
       case "swap.created":
       case "order.return_requested": {
         try {
-          const {shipping_method, shipping_data} = data.return_request
+          const { shipping_method, shipping_data } = data.return_request
           if (shipping_method) {
             const provider = shipping_method.shipping_option.provider_id
 
             const lbl = await this.fulfillmentProviderService_.retrieveDocuments(
-                provider,
-                shipping_data,
-                "label"
+              provider,
+              shipping_data,
+              "label"
             )
 
             attachments = attachments.concat(
-                lbl.map((d) => ({
-                  name: "return-label.pdf",
-                  base64: d.base_64,
-                  type: d.type,
-                }))
+              lbl.map((d) => ({
+                name: "return-label.pdf",
+                base64: d.base_64,
+                type: d.type,
+              }))
             )
           }
         } catch (err) {
-            console.error(err)
+          console.error(err)
         }
 
-        try{
+        try {
           if (attachmentGenerator && attachmentGenerator.createReturnInvoice) {
             const base64 = await attachmentGenerator.createReturnInvoice(
-                data.order,
-                data.return_request.items
+              data.order,
+              data.return_request.items
             )
             attachments.push({
               name: "invoice.pdf",
@@ -258,17 +267,17 @@ class PostmarkService extends NotificationService {
             })
           }
         } catch (err) {
-            console.error(err)
+          console.error(err)
         }
         return attachments
       }
       case "order.placed": {
 
-        try{
-          if ((this.options_?.pdf?.enabled??false) && attachmentGenerator && attachmentGenerator.createInvoice) {
+        try {
+          if ((this.options_?.pdf?.enabled ?? false) && attachmentGenerator && attachmentGenerator.createInvoice) {
             const base64 = await attachmentGenerator.createInvoice(
-                this.options_,
-                data
+              this.options_,
+              data
             )
             attachments.push({
               name: "invoice.pdf",
@@ -278,51 +287,71 @@ class PostmarkService extends NotificationService {
           }
         } catch (err) {
 
-          console.log('error ?',err)
+          console.log('error ?', err)
           console.error(err)
         }
         return attachments
       }
-      default:
-        return []
+      default: {return [];
+}
     }
   }
 
   async fetchData(event, eventData, attachmentGenerator) {
     switch (event) {
-      case "order.placed":
-        return this.orderPlacedData(eventData, attachmentGenerator)
-      case "order.shipment_created":
-        return this.orderShipmentCreatedData(eventData, attachmentGenerator)
-      case "order.canceled":
-        return this.orderCanceledData(eventData, attachmentGenerator)
-      case "user.password_reset":
-        return this.userPasswordResetData(eventData, attachmentGenerator)
-      case "customer.password_reset":
-        return this.customerPasswordResetData(eventData, attachmentGenerator)
-      case "gift_card.created":
-        return this.giftCardData(eventData, attachmentGenerator)
-      default:
-        return eventData
+      case 'order.placed': {return this.orderPlacedData(eventData, attachmentGenerator);
+}
+      case 'order.shipment_created': {return this.orderShipmentCreatedData(eventData, attachmentGenerator);
+}
+      case 'order.canceled': {return this.orderCanceledData(eventData, attachmentGenerator);
+}
+      case 'user.password_reset': {return this.userPasswordResetData(eventData, attachmentGenerator);
+}
+      case 'customer.password_reset': {return this.customerPasswordResetData(eventData, attachmentGenerator);
+}
+      case 'gift_card.created': {return this.giftCardData(eventData, attachmentGenerator);
+}
+      default: {return eventData;
+}
     }
+  }
+
+  async getTemplateMappings() {
+    const templates = await this.emailTemplateRepository_.find({ where: { notification_event: Not(NotificationEvent.UNSET) } });
+    const mappings = {};
+    templates.forEach((template) => {
+      const [group, action] = template.notification_event.split(".", 2);
+      if (!mappings[group]) {
+        mappings[group] = {};
+      }
+      mappings[group][action] = template.postmark_id;
+    });
+    return mappings;
   }
 
   async sendNotification(event, eventData, attachmentGenerator) {
     let group = undefined;
     let action = undefined;
+
+    let events = { ...this.options_.events, ...(await this.getTemplateMappings()) }
+
     try {
-      const event_ = event.split(".",2)
+      const event_ = event.split(".", 2)
       group = event_[0]
       action = event_[1]
-      if(typeof group === "undefined" || typeof action === "undefined" || this.options_.events[group] === undefined || this.options_.events[group][action] === undefined)
+
+      if (typeof group === "undefined" || typeof action === "undefined" || events[group] === undefined || events[group][action] === undefined) {
+        console.log("No template found for event", event, events)
         return false
+      }
     } catch (err) {
       console.error(err)
       return false
     }
 
-    let templateId = this.options_.events[group][action]
+    let templateId = events[group][action]
     const data = await this.fetchData(event, eventData, attachmentGenerator)
+    console.log("Data after", data);
     const attachments = await this.fetchAttachments(
       event,
       data,
@@ -332,8 +361,8 @@ class PostmarkService extends NotificationService {
     if (data.locale && typeof templateId === "object")
       templateId = templateId[data.locale] || Object.values(templateId)[0] // Fallback to first template if locale is not found
 
-    if(templateId === null)
-        return false
+    if (templateId === null)
+      return false
 
     const sendOptions = {
       From: this.options_.from,
@@ -344,8 +373,8 @@ class PostmarkService extends NotificationService {
         ...this.options_.default_data
       }
     }
-    if(this.options_?.bcc)
-        sendOptions.Bcc = this.options_.bcc
+    if (this.options_?.bcc)
+      sendOptions.Bcc = this.options_.bcc
 
     if (attachments?.length) {
       sendOptions.Attachments = attachments.map((a) => {
@@ -357,13 +386,12 @@ class PostmarkService extends NotificationService {
         }
       })
     }
-
-    return await this.client_.sendEmailWithTemplate(sendOptions)
-    .then(() => ({ to: sendOptions.to, status: 'sent', data: sendOptions }))
-    .catch((error) => {
-      console.error(error)
+    return  this.client_.sendEmailWithTemplate(sendOptions)
+      .then(() => ({ to: sendOptions.to, status: 'sent', data: sendOptions }))
+      .catch((error) => {
+        console.error(error)
         return { to: sendOptions.to, status: 'failed', data: sendOptions }
-    })
+      })
   }
 
   async resendNotification(notification, config, attachmentGenerator) {
@@ -387,16 +415,16 @@ class PostmarkService extends NotificationService {
       }
     })
 
-    return await this.client_.sendEmailWithTemplate(sendOptions)
-        .then(() => ({ to: sendOptions.To, status: 'sent', data: sendOptions }))
-        .catch((error) => {
-          console.error(error)
-          return { to: sendOptions.To, status: 'failed', data: sendOptions }
-        })
+    return  this.client_.sendEmailWithTemplate(sendOptions)
+      .then(() => ({ to: sendOptions.To, status: 'sent', data: sendOptions }))
+      .catch((error) => {
+        console.error(error)
+        return { to: sendOptions.To, status: 'failed', data: sendOptions }
+      })
   }
 
   async sendMail(options) {
-    try{
+    try {
       this.client_.sendEmailWithTemplate({
         ...options,
         TemplateModel: {
@@ -404,7 +432,7 @@ class PostmarkService extends NotificationService {
           ...this.options_.default_data
         }
       })
-    }catch (err) {
+    } catch (err) {
       console.log(err)
       throw err
     }
@@ -502,9 +530,8 @@ class PostmarkService extends NotificationService {
         return {
           is_giftcard: false,
           code: discount.code,
-          descriptor: `${discount.rule.value}${
-            discount.rule.type === "percentage" ? "%" : ` ${currencyCode}`
-          }`,
+          descriptor: `${discount.rule.value}${discount.rule.type === "percentage" ? "%" : ` ${currencyCode}`
+            }`,
         }
       })
     }
@@ -553,9 +580,9 @@ class PostmarkService extends NotificationService {
     }
   }
 
-  async giftCardData({id}) {
+  async giftCardData({ id }) {
     let data = await this.giftCardService.retrieve(
-        id,{ relations:["order"]}
+      id, { relations: ["order"] }
     )
     return {
       ...data,
@@ -618,9 +645,8 @@ class PostmarkService extends NotificationService {
         return {
           is_giftcard: false,
           code: discount.code,
-          descriptor: `${discount.rule.value}${
-            discount.rule.type === "percentage" ? "%" : ` ${currencyCode}`
-          }`,
+          descriptor: `${discount.rule.value}${discount.rule.type === "percentage" ? "%" : ` ${currencyCode}`
+            }`,
         }
       })
     }
@@ -679,12 +705,12 @@ class PostmarkService extends NotificationService {
         currencyCode
       )} ${currencyCode}`,
       shipping_total: `${this.humanPrice_(
-          shipping_total,
-          currencyCode
+        shipping_total,
+        currencyCode
       )} ${currencyCode}`,
       shipping_total_inc: `${this.humanPrice_(
         order?.shipping_methods[0]?.price || shipping_total,
-          currencyCode
+        currencyCode
       )} ${currencyCode}`,
       total: `${this.humanPrice_(total, currencyCode)} ${currencyCode}`,
     }
@@ -722,7 +748,7 @@ class PostmarkService extends NotificationService {
 
   normalizeThumbUrl_(url) {
     if (!url)
-      return null
+      return 
     else if (url.startsWith("http"))
       return url
     else if (url.startsWith("//"))
@@ -742,10 +768,10 @@ class PostmarkService extends NotificationService {
       } catch (err) {
         console.log(err)
         console.warn("Failed to gather context for order")
-        return null
+        return 
       }
     }
-    return null
+    return 
   }
 }
 
