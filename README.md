@@ -2,6 +2,7 @@
 
 [![stars - medusa-plugin-postmark](https://img.shields.io/github/stars/Fullstak-nl/medusa-plugin-postmark?style=social)](https://github.com/Fullstak-nl/medusa-plugin-postmark)
 [![forks - medusa-plugin-postmark](https://img.shields.io/github/forks/Fullstak-nl/medusa-plugin-postmark?style=social)](https://github.com/Fullstak-nl/medusa-plugin-postmark)
+[![CodeQL](https://github.com/Fullstak-nl/medusa-plugin-postmark/actions/workflows/codeql.yml/badge.svg)](https://github.com/Fullstak-nl/medusa-plugin-postmark/actions/workflows/codeql.yml)
 
 [![GitHub tag](https://img.shields.io/github/tag/Fullstak-nl/medusa-plugin-postmark?include_prereleases=&sort=semver&color=blue)](https://github.com/Fullstak-nl/medusa-plugin-postmark/releases/)
 [![License](https://img.shields.io/badge/License-MIT-blue)](#license)
