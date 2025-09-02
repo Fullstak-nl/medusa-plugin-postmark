@@ -307,65 +307,6 @@ class PostmarkService extends NotificationService {
     }
   }
 
-  async sendNotification(event, eventData, attachmentGenerator) {
-    let group = undefined;
-    let action = undefined;
-    try {
-      const event_ = event.split(".",2)
-      group = event_[0]
-      action = event_[1]
-      if(typeof group === "undefined" || typeof action === "undefined" || this.options_.events[group] === undefined || this.options_.events[group][action] === undefined)
-        return false
-    } catch (err) {
-      console.error(err)
-      return false
-    }
-
-    let templateId = this.options_.events[group][action]
-    const data = await this.fetchData(event, eventData, attachmentGenerator)
-    const attachments = await this.fetchAttachments(
-      event,
-      data,
-      attachmentGenerator
-    )
-
-    if (data.locale && typeof templateId === "object")
-      templateId = templateId[data.locale] || Object.values(templateId)[0] // Fallback to first template if locale is not found
-
-    if(templateId === null)
-        return false
-
-    const sendOptions = {
-      From: this.options_.from,
-      to: data.email ?? data?.customer?.email,
-      TemplateId: templateId,
-      TemplateModel: {
-        ...data,
-        ...this.options_.default_data
-      }
-    }
-    if(this.options_?.bcc)
-        sendOptions.Bcc = this.options_.bcc
-
-    if (attachments?.length) {
-      sendOptions.Attachments = attachments.map((a) => {
-        return {
-          content: a.base64,
-          Name: a.name,
-          ContentType: a.type,
-          ContentID: `cid:${a.name}`,
-        }
-      })
-    }
-
-    return await this.client_.sendEmailWithTemplate(sendOptions)
-    .then(() => ({ to: sendOptions.to, status: 'sent', data: sendOptions }))
-    .catch((error) => {
-      console.error(error)
-        return { to: sendOptions.to, status: 'failed', data: sendOptions }
-    })
-  }
-
   async resendNotification(notification, config, attachmentGenerator) {
     const sendOptions = {
       ...notification.data,
