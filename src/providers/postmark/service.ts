@@ -1,8 +1,8 @@
-import { Logger, NotificationTypes } from "@medusajs/framework/types"
+import { NotificationTypes } from "@medusajs/framework/types"
 import { AbstractNotificationProviderService, MedusaError } from "@medusajs/framework/utils"
 import { ServerClient, TemplatedMessage } from "postmark"
 
-type Options = {
+export type PostmarkProviderOptions = {
   apiKey: string,
   default: {
     from: string,
@@ -13,14 +13,12 @@ type Options = {
 class PostmarkProviderService extends AbstractNotificationProviderService {
   static identifier = "postmark"
   protected client: ServerClient
-  protected options: Options
-  protected logger: Logger
+  protected options: PostmarkProviderOptions
 
-  constructor({ logger }: { logger: Logger }, options: Options) {
-    super();
+  constructor(_, options: PostmarkProviderOptions) {
+    super()
     this.options = options
     this.client = new ServerClient(options.apiKey)
-    this.logger = logger
   }
 
   async send(notification: NotificationTypes.ProviderSendNotificationDTO): Promise<NotificationTypes.ProviderSendNotificationResultsDTO> {

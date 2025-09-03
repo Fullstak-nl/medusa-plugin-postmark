@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2021",
+    "target": "ES2024",
     "esModuleInterop": true,
     "module": "Node16",
     "moduleResolution": "Node16",
