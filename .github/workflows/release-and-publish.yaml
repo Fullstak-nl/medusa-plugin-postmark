@@ -1,0 +1,94 @@
+name: Release NPM Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release type (patch, minor, major, or specific version)'
+        required: true
+        default: 'patch'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+    permissions:
+      contents: write
+      packages: write  
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      # - name: Setup pnpm
+      #   uses: pnpm/action-setup@v2
+      #   with:
+      #     version: latest
+      #     run_install: false
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      # - name: Create env file
+      #   run: |
+      #     echo 'DB_USERNAME=postgres' >> ./integration-tests/.env.test
+      #     echo 'DB_PASSWORD=postgres' >> ./integration-tests/.env.test
+      #     echo 'TOLGEE_API_URL=https://app.tolgee.io' >> ./integration-tests/.env.test
+      #     echo 'TOLGEE_API_KEY=${{ secrets.TOLGEE_API_KEY }}' >> ./integration-tests/.env.test
+      #     echo 'TOLGEE_PROJECT_ID=${{ secrets.TOLGEE_PROJECT_ID }}' >> ./integration-tests/.env.test
+
+      # - name: Run tests
+      #   run: pnpm run --filter integration-tests test:integration:http
+
+      - name: Build
+        run: |
+          yarn build
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+      - name: Bump version and push
+        id: version-bump
+        run: |
+          cd package
+          yarn version ${{ github.event.inputs.version }} -m "chore: release v%s"
+          # Get the new version after bumping
+          VERSION=$(node -p "require('./package.json').version")
+          cd ..
+
+          # Set version output
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          # Push all changes and tags
+          git push && git push --tags
+
+      - name: Publish to NPM
+        run: yarn publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version-bump.outputs.version }}
+          name: v${{ steps.version-bump.outputs.version }}
+          generate_release_notes: true
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
