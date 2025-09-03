@@ -2,6 +2,11 @@ version: 2
 updates:
   - package-ecosystem: "npm"
     directory: "/"
+    groups:
+      medusa:
+        dependency-type: "development"
+        patterns:
+          - "@medusajs/*"
     schedule:
       interval: "weekly"
     commit-message:
