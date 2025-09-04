@@ -35,11 +35,10 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
             templates.Templates.sort((a, b) => {
                 const ascending = !order?.startsWith("-")
                 const field = order?.replace("-", "")
-                console.log(field, a[field], b[field], a, b)
                 if (ascending) {
-                    return a[field].localeCompare(b[field])
+                    return a[field]?.localeCompare(b[field])
                 } else {
-                    return b[field].localeCompare(a[field])
+                    return b[field]?.localeCompare(a[field])
                 }
             })
 

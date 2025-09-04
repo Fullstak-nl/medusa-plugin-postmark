@@ -1,10 +1,21 @@
-import React, { useMemo, useState } from "react"
-import { Container, Heading, DataTable, DropdownMenu, IconButton, useDataTable, createDataTableColumnHelper, createDataTableFilterHelper, Tabs, toast } from "@medusajs/ui"
-import { useQuery } from "@tanstack/react-query"
 import { defineRouteConfig } from "@medusajs/admin-sdk"
+import {
+  Button,
+  Container,
+  createDataTableColumnHelper,
+  DataTable,
+  DataTablePaginationState,
+  DataTableSortingState,
+  Tabs,
+  toast,
+  useDataTable,
+} from "@medusajs/ui"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { sdk } from "../../lib/sdk"
-import type { DataTableFilteringState, DataTablePaginationState, DataTableSortingState } from "@medusajs/ui"
 import { PencilSquare, Trash, SquareTwoStack } from "@medusajs/icons"
+import React, { useState, useMemo, useCallback } from "react"
+import { t } from "@mikro-orm/core"
+import { Link, useNavigate } from "react-router-dom"
 
 type PostmarkTemplate = {
   Name: string
@@ -15,7 +26,7 @@ type PostmarkTemplate = {
 }
 
 const columnHelper = createDataTableColumnHelper<PostmarkTemplate>()
-const filterHelper = createDataTableFilterHelper<PostmarkTemplate>()
+// const filterHelper = createDataTableFilterHelper<PostmarkTemplate>()
 
 const createColumns = (onDelete: (templateId: number) => void) => [
   columnHelper.accessor("Name", { header: "Name", enableSorting: true }),
@@ -47,15 +58,16 @@ const createColumns = (onDelete: (templateId: number) => void) => [
   }),
 ]
 
-const filters = []
+// const filters = []
 
-const layoutFilters = [
-  filterHelper.accessor("Name", {
-    type: "select",
-    label: "Name",
-    options: [],
-  }),
-]
+// const layoutFilters = [
+//   filterHelper.accessor("Name", {
+//     type: "select",
+//     label: "Name",
+//     options: [],
+//   }),
+// ]
+const limit = 15
 
 const PostmarkPage = () => {
   const [activeTab, setActiveTab] = useState<string>("templates")
@@ -65,24 +77,11 @@ const PostmarkPage = () => {
     pageIndex: 0,
   })
   const [search, setSearch] = useState<string>("")
-  const [filtering, setFiltering] = useState<DataTableFilteringState>({})
+  //const [filtering, setFiltering] = useState<DataTableFilteringState>({})
   const [sorting, setSorting] = useState<DataTableSortingState | null>(null)
   const offset = useMemo(() => {
     return pagination.pageIndex * limit
   }, [pagination])
-
-  // Layout table state
-  const [layoutPagination, setLayoutPagination] = useState<DataTablePaginationState>({
-    pageSize: limit,
-    pageIndex: 0,
-  })
-  const [layoutSearch, setLayoutSearch] = useState<string>("")
-  const [layoutFiltering, setLayoutFiltering] = useState<DataTableFilteringState>({})
-  const [layoutSorting, setLayoutSorting] = useState<DataTableSortingState | null>(null)
-  const layoutOffset = useMemo(() => {
-    return layoutPagination.pageIndex * limit
-  }, [layoutPagination])
-
 
   const handleDeleteTemplate = async (templateId: number) => {
     try {
@@ -109,48 +108,65 @@ const PostmarkPage = () => {
       })
     }
   }
-
-  const { data, isLoading, refetch } = useQuery<{ Templates: PostmarkTemplate[], TotalCount: number }>({
+  const { data, isPending, refetch } = useQuery<{ Templates: PostmarkTemplate[], TotalCount: number }>({
     queryFn: () => sdk.client.fetch("/admin/postmark/templates", {
       query: {
         limit,
         offset,
         q: search,
         order: sorting ? `${sorting.desc ? "-" : ""}${sorting.id}` : undefined,
-      },
-      method: "GET",
-      headers: {
-        "Accept": "application/json",
-      },
+      }
     }),
-    
-    queryKey: ["postmark-templates"],
+    placeholderData: keepPreviousData,
+    queryKey: [["postmark-templates", limit, offset, search, sorting?.id, sorting?.desc]],
   })
 
-  const { data: layoutData, isLoading: isLayoutLoading, refetch: refetchLayouts } = useQuery<{ Templates: PostmarkTemplate[], TotalCount: number }>({
+  const { data: layoutData, isPending: isLayoutPending, refetch: refetchLayouts } = useQuery<{ Templates: PostmarkTemplate[], TotalCount: number }>({
     queryFn: () => sdk.client.fetch("/admin/postmark/layouts", {
       query: {
         limit,
-        offset: layoutOffset,
-        q: layoutSearch,
-        order: layoutSorting ? `${layoutSorting.desc ? "-" : ""}${layoutSorting.id}` : undefined,
-      },
-      method: "GET",
-      headers: {
-        "Accept": "application/json",
-      },
+        offset,
+        q: search,
+        order: sorting ? `${sorting.desc ? "-" : ""}${sorting.id}` : undefined,
+      }
     }),
-    queryKey: ["postmark-layouts"],
-
+    placeholderData: keepPreviousData,
+    queryKey: [["postmark-layouts", limit, offset, search, sorting?.id, sorting?.desc]],
   })
   const columns = createColumns(handleDeleteTemplate)
+
+  const rowHref = (row) => `${row.id}`
+  const navigate = useNavigate()
+  const onRowClick = useCallback(
+    (event: React.MouseEvent<HTMLTableRowElement, MouseEvent>, row) => {
+      if (!rowHref) {
+        return
+      }
+
+      const href = rowHref(row)
+
+      if (event.metaKey || event.ctrlKey || event.button === 1) {
+        window.open(href, "_blank", "noreferrer")
+        return
+      }
+
+      if (event.shiftKey) {
+        window.open(href, undefined, "noreferrer")
+        return
+      }
+
+      navigate(href)
+    },
+    [navigate, rowHref]
+  )
 
   const table = useDataTable<PostmarkTemplate>({
     columns,
     data: data?.Templates || [],
     getRowId: (row) => row.TemplateId.toString(),
     rowCount: data?.TotalCount || 0,
-    isLoading,
+    isLoading: isPending,
+    onRowClick,
     pagination: {
       state: pagination,
       onPaginationChange: setPagination,
@@ -159,11 +175,11 @@ const PostmarkPage = () => {
       state: search,
       onSearchChange: setSearch,
     },
-    filtering: {
-      state: filtering,
-      onFilteringChange: setFiltering,
-    },
-    filters,
+    // filtering: {
+    //   state: filtering,
+    //   onFilteringChange: setFiltering,
+    // },
+    // filters,
     sorting: {
       // Pass the pagination state and updater to the table instance
       state: sorting,
@@ -176,12 +192,31 @@ const PostmarkPage = () => {
     data: layoutData?.Templates || [],
     getRowId: (row) => row.TemplateId.toString(),
     rowCount: layoutData?.TotalCount || 0,
-    filters: layoutFilters,
-    filtering: { state: layoutFiltering, onFilteringChange: setLayoutFiltering },
-    sorting: { state: layoutSorting, onSortingChange: setLayoutSorting },
-    search: { state: layoutSearch, onSearchChange: setLayoutSearch },
-    pagination: { state: layoutPagination, onPaginationChange: setLayoutPagination },
-    isLoading: isLayoutLoading,
+    onRowClick,
+    // filters: layoutFilters,
+    // filtering: { state: layoutFiltering, onFilteringChange: setLayoutFiltering },
+    // sorting: { state: layoutSorting, onSortingChange: setLayoutSorting },
+    // search: { state: layoutSearch, onSearchChange: setLayoutSearch },
+    // pagination: { state: layoutPagination, onPaginationChange: setLayoutPagination },
+    pagination: {
+      state: pagination,
+      onPaginationChange: setPagination,
+    },
+    search: {
+      state: search,
+      onSearchChange: setSearch,
+    },
+    // filtering: {
+    //   state: filtering,
+    //   onFilteringChange: setFiltering,
+    // },
+    // filters,
+    sorting: {
+      // Pass the pagination state and updater to the table instance
+      state: sorting,
+      onSortingChange: setSorting,
+    },
+    isLoading: isLayoutPending,
   })
 
   return (
@@ -194,9 +229,13 @@ const PostmarkPage = () => {
               <Tabs.Trigger value="layouts">Layouts</Tabs.Trigger>
             </Tabs.List>
             <div style={{ display: "flex", gap: 8, marginLeft: "auto" }}>
-              {/* <DataTable.FilterMenu tooltip="Filter" /> */}
-              <DataTable.SortingMenu tooltip="Sort" />
               <DataTable.Search placeholder={activeTab === "templates" ? "Jump to a template" : "Jump to a layout"} />
+              <DataTable.SortingMenu tooltip="Sort" />
+              {/* <DataTable.FilterMenu tooltip="Filter" /> */}
+              <DataTableAction
+                label={("actions.create")}
+                to={"create"}
+              />
             </div>
           </DataTable.Toolbar>
           <DataTable.Table />
@@ -213,5 +252,42 @@ export const config = defineRouteConfig({
 
 export default PostmarkPage
 
+type DataTableActionProps = {
+  label: string
+  disabled?: boolean
+} & (
+    | {
+      to: string
+    }
+    | {
+      onClick: () => void
+    }
+  )
 
-const limit = 15
+const DataTableAction = ({
+  label,
+  disabled,
+  ...props
+}: DataTableActionProps) => {
+  const buttonProps = {
+    size: "small" as const,
+    disabled: disabled ?? false,
+    type: "button" as const,
+    variant: "secondary" as const,
+  }
+
+  if ("to" in props) {
+    return (
+      <Button {...buttonProps} asChild>
+        <Link to={props.to}>{label}</Link>
+      </Button>
+    )
+  }
+
+  return (
+    <Button {...buttonProps} onClick={props.onClick}>
+      {label}
+    </Button>
+  )
+}
+
