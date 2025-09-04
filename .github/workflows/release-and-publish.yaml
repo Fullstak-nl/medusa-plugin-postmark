@@ -77,7 +77,20 @@ jobs:
           git push && git push --tags
 
       - name: Publish to NPM
-        run: yarn publish
+        run: |
+          if [[ "$VERSION" == *"beta"* ]]; then
+            echo "Publishing with dist-tag beta"
+            yarn publish --tag beta
+          elif [[ "$VERSION" == *"alpha"* ]]; then
+            echo "Publishing with dist-tag alpha"
+            yarn publish --tag alpha
+          elif [[ "$VERSION" == *"rc"* ]]; then
+            echo "Publishing with dist-tag rc"
+            yarn publish --tag rc 
+          else
+            echo "Publishing with default dist-tag latest"
+            yarn publish
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
