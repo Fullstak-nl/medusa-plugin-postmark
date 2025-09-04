@@ -2,6 +2,8 @@ version: 2
 updates:
   - package-ecosystem: "npm"
     directory: "/"
+    allow:
+      - dependency-name: "@medusajs/*"
     groups:
       medusa:
         dependency-type: "development"

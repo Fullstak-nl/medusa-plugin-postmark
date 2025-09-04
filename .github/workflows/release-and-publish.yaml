@@ -66,11 +66,9 @@ jobs:
       - name: Bump version and push
         id: version-bump
         run: |
-          cd package
-          yarn version ${{ github.event.inputs.version }} -m "chore: release v%s"
+          yarn version --new-version ${{ github.event.inputs.version }} -m "chore: release v%s"
           # Get the new version after bumping
           VERSION=$(node -p "require('./package.json').version")
-          cd ..
 
           # Set version output
           echo "version=$VERSION" >> $GITHUB_OUTPUT
