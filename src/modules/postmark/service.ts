@@ -2,6 +2,7 @@ import { MedusaService } from "@medusajs/framework/utils"
 import { Reminder } from "../../types/abandoned-cart"
 
 export type PostmarkModuleOptions = {
+    server_api?: string
     abandoned_cart?: {
         reminders: Reminder[]
     }
