@@ -1,6 +1,8 @@
 import { defineMiddlewares, validateAndTransformBody } from "@medusajs/framework/http"
-import { CreateAbandonedCartReminderScheduleSchema } from "./admin/postmark/abandoned-carts/reminders/schedules/route"
-import { UpdateAbandonedCartReminderScheduleSchema } from "./admin/postmark/abandoned-carts/reminders/schedules/[id]/route"
+import {
+    CreateAbandonedCartReminderScheduleSchema,
+    UpdateAbandonedCartReminderScheduleSchema
+} from "../types/reminder-schedules"
 
 export default defineMiddlewares({
     routes: [

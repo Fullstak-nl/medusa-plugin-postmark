@@ -9,7 +9,7 @@ import { sendAbandonedNotificationsStep } from "./steps/send-abandoned-notificat
 import { updateCartsStep } from "@medusajs/medusa/core-flows"
 import zod from "zod"
 import { fetchAbandonedCarts } from "./steps/fetch-abandoned-carts"
-import { Reminder } from "../types/abandoned-cart"
+import { Reminder } from "../types/reminder-schedules"
 import { defaultAbandonedCartData } from "./steps/default-hooks/abandoned-cart"
 
 export type SendAbandonedCartsWorkflowInput = {

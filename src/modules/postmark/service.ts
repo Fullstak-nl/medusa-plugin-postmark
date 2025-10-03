@@ -1,5 +1,5 @@
 import { MedusaService } from "@medusajs/framework/utils"
-import { Reminder } from "../../types/abandoned-cart"
+import { Reminder } from "../../types/reminder-schedules"
 import { ServerClient } from "postmark"
 
 export type PostmarkModuleOptions = {

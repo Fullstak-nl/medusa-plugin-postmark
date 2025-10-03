@@ -1,14 +1,8 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { z } from "zod"
 import { ABANDONED_CART_MODULE } from "../../../../../../../modules/abandoned-cart"
-
-export const UpdateAbandonedCartReminderScheduleSchema = z.object({
-    enabled: z.boolean().optional(),
-    template_id: z.string().optional(),
-    offset_hours: z.array(z.string()).optional()
-})
-
-type UpdateReminderSchedule = z.infer<typeof UpdateAbandonedCartReminderScheduleSchema>
+import {
+    UpdateReminderSchedule
+} from "../../../../../../../types/reminder-schedules"
 
 export async function POST(req: MedusaRequest<UpdateReminderSchedule>, res: MedusaResponse) {
     const { id } = req.params

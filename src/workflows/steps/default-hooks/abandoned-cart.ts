@@ -1,6 +1,6 @@
 import { CartDTO, CustomerDTO } from "@medusajs/framework/types"
 import { createStep, StepResponse } from "@medusajs/framework/workflows-sdk"
-import { Reminder } from "../../../types/abandoned-cart"
+import { Reminder } from "../../../types/reminder-schedules"
 
 export const defaultAbandonedCartData = createStep(
     "default-notification-data",

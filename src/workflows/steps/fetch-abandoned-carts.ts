@@ -1,5 +1,5 @@
 import { createStep, StepResponse } from "@medusajs/framework/workflows-sdk"
-import { Reminder } from "../../types/abandoned-cart"
+import { Reminder } from "../../types/reminder-schedules"
 import { CartDTO, CustomerDTO } from "@medusajs/framework/types"
 
 type FetchAbandonedCartsStepInput = {
