@@ -1,20 +1,13 @@
 import { DataTablePaginationState, DataTableSortingState, toast, useDataTable, createDataTableColumnHelper } from "@medusajs/ui"
 import { useState, useMemo, useCallback } from "react"
-import { sdk } from "../../lib/sdk"
+import { sdk } from "../lib/sdk"
 import { Trash } from "@medusajs/icons"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
+import { PostmarkTemplate } from "../../types/templates"
 
 type UsePostmarkDataTableProps = {
     type: "template" | "layout"
     serverId?: string
-}
-
-type PostmarkTemplate = {
-    Name: string
-    Alias: string
-    TemplateType: string
-    LayoutTemplate: string | null
-    TemplateId: number
 }
 
 export const usePostmarkDataTable = ({ type, serverId }: UsePostmarkDataTableProps) => {

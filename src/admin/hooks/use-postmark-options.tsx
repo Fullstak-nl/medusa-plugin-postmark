@@ -1,4 +1,4 @@
-import { sdk } from "../../lib/sdk"
+import { sdk } from "../lib/sdk"
 import { useQuery } from "@tanstack/react-query"
 
 type PostmarkServerOptions = {

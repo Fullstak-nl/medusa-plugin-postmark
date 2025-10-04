@@ -1,8 +1,8 @@
 import { useState } from "react"
 import { defineRouteConfig } from "@medusajs/admin-sdk"
 import { Container, DataTable, Tabs } from "@medusajs/ui"
-import { usePostmarkOptions } from "../../components/hooks/use-postmark-options"
-import { usePostmarkDataTable } from "../../components/hooks/use-postmark-table"
+import { usePostmarkOptions } from "../../hooks/use-postmark-options"
+import { usePostmarkDataTable } from "../../hooks/use-postmark-table"
 import { DataTableAction } from "../../components/data-table-action"
 
 const PostmarkPage = () => {

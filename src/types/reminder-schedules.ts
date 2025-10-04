@@ -8,8 +8,9 @@ export interface ReminderSchedule {
     enabled: boolean
     template_id: string
     offset_hours: string[]
-    created_at: string
-    updated_at: string
+    template_name?: string
+    created_at?: string
+    updated_at?: string
     deleted_at?: string
 }
 
@@ -50,29 +51,29 @@ export interface ReminderScheduleListResponse {
  * API response for single reminder schedule operations
  */
 export interface ReminderScheduleResponse {
-    schedules: ReminderSchedule
+    schedule: ReminderSchedule
 }
 
 /**
  * Zod schema for creating reminder schedules
  */
-export const CreateAbandonedCartReminderScheduleSchema = z.object({
+export const CreateReminderScheduleSchema = z.object({
     enabled: z.boolean(),
-    template_id: z.string(),
-    offset_hours: z.array(z.string())
+    template_id: z.string().nonempty(),
+    offset_hours: z.array(z.string()).nonempty()
 })
 
 /**
  * Zod schema for updating reminder schedules
  */
-export const UpdateAbandonedCartReminderScheduleSchema = z.object({
+export const UpdateReminderScheduleSchema = z.object({
     enabled: z.boolean().optional(),
-    template_id: z.string().optional(),
-    offset_hours: z.array(z.string()).optional()
+    template_id: z.string().nonempty().optional(),
+    offset_hours: z.array(z.string()).nonempty().optional()
 })
 
 /**
  * Inferred types from Zod schemas
  */
-export type CreateReminderSchedule = z.infer<typeof CreateAbandonedCartReminderScheduleSchema>
-export type UpdateReminderSchedule = z.infer<typeof UpdateAbandonedCartReminderScheduleSchema>
+export type CreateReminderSchedule = z.infer<typeof CreateReminderScheduleSchema>
+export type UpdateReminderSchedule = z.infer<typeof UpdateReminderScheduleSchema>

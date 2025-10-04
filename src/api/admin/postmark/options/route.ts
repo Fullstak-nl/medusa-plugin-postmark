@@ -5,7 +5,6 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         // Get Postmark configuration from plugin options
         const postmarkModuleService = req.scope.resolve("postmarkModuleService")
         const pluginOptions = postmarkModuleService?.getOptions?.()
-        console.log("Plugin Options:", pluginOptions)
         if (!pluginOptions) {
             return res.status(404).json({
                 error: "Postmark module options not found"

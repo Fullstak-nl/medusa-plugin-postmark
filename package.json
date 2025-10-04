@@ -50,6 +50,7 @@
       "@mikro-orm/postgresql": "6.4.3",
       "@swc/core": "1.5.7",
       "@types/node": "^20.0.0",
+      "@types/lodash": "4.17.20",
       "@types/react": "^18.3.2",
       "@types/react-dom": "^18.2.25",
       "awilix": "^8.0.1",

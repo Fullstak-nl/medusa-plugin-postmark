@@ -4,6 +4,13 @@ import {
     UpdateReminderSchedule
 } from "../../../../../../../types/reminder-schedules"
 
+export async function GET(req: MedusaRequest, res: MedusaResponse) {
+    const { id } = req.params
+    const abandonedCartModuleService = req.scope.resolve(ABANDONED_CART_MODULE)
+    const schedule = await abandonedCartModuleService.retrieveReminderSchedule(id)
+    res.json({ schedule })
+}
+
 export async function POST(req: MedusaRequest<UpdateReminderSchedule>, res: MedusaResponse) {
     const { id } = req.params
     const abandonedCartModuleService = req.scope.resolve(ABANDONED_CART_MODULE)
