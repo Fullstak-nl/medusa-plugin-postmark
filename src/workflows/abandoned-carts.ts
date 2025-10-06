@@ -2,18 +2,15 @@ import {
     createWorkflow,
     WorkflowResponse,
     transform,
-    createHook,
-    when,
 } from "@medusajs/framework/workflows-sdk"
 import { sendAbandonedNotificationsStep } from "./steps/send-abandoned-notifications"
 import { updateCartsStep } from "@medusajs/medusa/core-flows"
-import zod from "zod"
 import { fetchAbandonedCarts } from "./steps/fetch-abandoned-carts"
-import { Reminder } from "../types/reminder-schedules"
-import { defaultAbandonedCartData } from "./steps/default-hooks/abandoned-cart"
+import { ReminderSchedule } from "../types/reminder-schedules"
+import { notificationDataWorkflow } from "./notification-data"
 
 export type SendAbandonedCartsWorkflowInput = {
-    reminders: Reminder[]
+    reminderSchedules: ReminderSchedule[]
     pagination: { limit: number, offset: number }
 }
 
@@ -22,30 +19,9 @@ export const sendAbandonedCartsWorkflow = createWorkflow(
     function (input: SendAbandonedCartsWorkflowInput) {
         const { carts, totalCount } = fetchAbandonedCarts(input)
 
-        const notificationDataHook = createHook(
-            "abandonedCartNotificationData",
-            { carts },
-            {
-                resultValidator: zod.array(zod.object({
-                    to: zod.string(),
-                    channel: zod.string(),
-                    template: zod.string(),
-                    data: zod.record(zod.any()).default({}),
-                    attachments: zod.array(zod.any()).optional(),
-                }))
-            }
-        )
-        const notificationDataHookResult = notificationDataHook.getResult()
-
-        const defaultData = when({ notificationDataHookResult }, ({ notificationDataHookResult }) => !notificationDataHookResult)
-            .then(() => defaultAbandonedCartData(carts))
-
-        const notificationData = transform(
-            { notificationDataHookResult, defaultData },
-            (data) => {
-                return data.notificationDataHookResult ?? data.defaultData
-            }
-        )
+        const { notificationData } = notificationDataWorkflow.runAsStep({
+            input: { carts }
+        })
 
         sendAbandonedNotificationsStep({ data: notificationData })
 
@@ -62,6 +38,6 @@ export const sendAbandonedCartsWorkflow = createWorkflow(
 
         const updatedCarts = updateCartsStep(updateCartsData)
 
-        return new WorkflowResponse({ updatedCarts, pagination: { totalCount } }, { hooks: [notificationDataHook] })
+        return new WorkflowResponse({ updatedCarts, pagination: { totalCount } })
     }
 )

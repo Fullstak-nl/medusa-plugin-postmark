@@ -1,14 +1,11 @@
-import { CartDTO, CustomerDTO } from "@medusajs/framework/types"
-import { createStep, StepResponse } from "@medusajs/framework/workflows-sdk"
-import { Reminder } from "../../../types/reminder-schedules"
+import { NotificationDataWorkflowInput } from "../../notification-data"
 
-export const defaultAbandonedCartData = createStep(
-    "default-notification-data",
-    async (carts: Array<[Reminder, (CartDTO & { customer: CustomerDTO })[]]>) => {
-        const result = carts.flatMap(([reminder, carts]) =>
+export const defaultAbandonedCartData =
+    async (carts: NotificationDataWorkflowInput["carts"]) =>
+        carts.flatMap(([reminder, carts]) =>
             carts.map((cart) => ({
                 to: cart.email!,
-                channel: "email",
+                channel: "feed",
                 template: reminder.template,
                 data: {
                     customer: {
@@ -25,6 +22,4 @@ export const defaultAbandonedCartData = createStep(
                 }
             }))
         )
-        return new StepResponse(result)
-    }
-)
+

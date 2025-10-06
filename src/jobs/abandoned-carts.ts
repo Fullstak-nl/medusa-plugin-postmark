@@ -1,7 +1,7 @@
 import { MedusaContainer } from "@medusajs/framework/types"
 import { sendAbandonedCartsWorkflow } from "../workflows/abandoned-carts"
-import { defineFileConfig, MedusaError } from "@medusajs/framework/utils"
-import { POSTMARK_MODULE } from "../modules/postmark"
+import { defineFileConfig } from "@medusajs/framework/utils"
+import { ABANDONED_CART_MODULE } from "../modules/abandoned-cart"
 
 export default async function abandonedCartJob(
     container: MedusaContainer
@@ -13,18 +13,21 @@ export default async function abandonedCartJob(
     let totalCount = 0
     let abandonedCartsCount = 0
 
-    const postmarkService = container.resolve(POSTMARK_MODULE)
-    const options = postmarkService.getOptions()
+    const abandonedCartService = container.resolve(ABANDONED_CART_MODULE)
+    const reminderSchedules = await abandonedCartService.listReminderSchedules({
+        enabled: true
+    })
 
-    if (!options.abandoned_cart?.reminders?.length)
-        throw new MedusaError(MedusaError.Types.UNEXPECTED_STATE, "Abandoned cart reminders are enabled but not configured")
-
+    if (!reminderSchedules?.length) {
+        logger.info("No enabled reminder schedules found")
+        return
+    }
 
     do {
         try {
             const { result: { updatedCarts, pagination } } = await sendAbandonedCartsWorkflow(container).run({
                 input: {
-                    reminders: options.abandoned_cart.reminders,
+                    reminderSchedules,
                     pagination: { limit, offset },
                 },
             })
@@ -44,9 +47,9 @@ export default async function abandonedCartJob(
 
 export const config = {
     name: "abandoned-cart-notification",
-    schedule: "0 * * * *", // Run every hour
+    schedule: process.env.PLUGIN_POSTMARK_ABANDONED_CART_SCHEDULE || "0 * * * *", // Run every hour by default
 }
 
 defineFileConfig({
-    isDisabled: () => process.env.PLUGIN_POSTMARK_ABANDONED_CART_ENABLE !== "true",
+    isDisabled: () => process.env.PLUGIN_POSTMARK_ABANDONED_CART_ENABLE === "false",
 })

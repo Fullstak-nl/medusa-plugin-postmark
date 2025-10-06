@@ -1,16 +1,29 @@
 import { createStep, StepResponse } from "@medusajs/framework/workflows-sdk"
-import { Reminder } from "../../types/reminder-schedules"
+import { ReminderSchedule } from "../../types/reminder-schedules"
 import { CartDTO, CustomerDTO } from "@medusajs/framework/types"
 
 type FetchAbandonedCartsStepInput = {
-    reminders: Array<Reminder>
+    reminderSchedules: Array<ReminderSchedule>
     pagination: { limit: number, offset: number }
 }
 
 export const fetchAbandonedCarts = createStep(
     "fetch-abandoned-carts",
-    async ({ reminders, pagination }: FetchAbandonedCartsStepInput, { container }) => {
+    async ({ reminderSchedules, pagination }: FetchAbandonedCartsStepInput, { container }) => {
         const query = container.resolve("query")
+
+        // Transform reminder schedules into a flat array of reminders with delay and template
+        const reminders = reminderSchedules.flatMap(schedule =>
+            schedule.offset_hours.map(hours => ({
+                delay: parseFloat(hours),
+                template: schedule.template_id,
+                schedule: schedule
+            }))
+        ).sort((a, b) => a.delay - b.delay)
+
+        if (!reminders.length) {
+            return new StepResponse({ carts: [], totalCount: 0 })
+        }
 
         const closestValidRemiderDate = new Date(Date.now() - reminders[0].delay * 60 * 60 * 1000)
         const {
@@ -60,6 +73,9 @@ export const fetchAbandonedCarts = createStep(
         }
 
         const totalCount = metadata?.count ?? 0
-        return new StepResponse({ carts: Array.from(groupedCarts.entries() as unknown as Map<Reminder, (CartDTO & { customer: CustomerDTO })[]>), totalCount })
+        return new StepResponse({
+            carts: Array.from(groupedCarts.entries() as unknown as Map<{ delay: number, template: string, schedule: ReminderSchedule }, (CartDTO & { customer: CustomerDTO })[]>),
+            totalCount
+        })
     }
 )

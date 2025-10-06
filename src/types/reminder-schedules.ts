@@ -9,18 +9,11 @@ export interface ReminderSchedule {
     template_id: string
     offset_hours: string[]
     template_name?: string
-    created_at?: string
-    updated_at?: string
-    deleted_at?: string
+    created_at?: Date
+    updated_at?: Date
+    deleted_at?: Date | null
 }
 
-/**
- * Simplified reminder type for workflows - represents delay in hours and template
- */
-export interface Reminder {
-    delay: number
-    template: string
-}
 
 /**
  * Request payload for creating a new reminder schedule

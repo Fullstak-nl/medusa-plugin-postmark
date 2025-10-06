@@ -4,8 +4,10 @@ import { Container, DataTable, Tabs } from "@medusajs/ui"
 import { usePostmarkOptions } from "../../hooks/use-postmark-options"
 import { usePostmarkDataTable } from "../../hooks/use-postmark-table"
 import { DataTableAction } from "../../components/data-table-action"
+import { useTranslation } from "react-i18next"
 
 const PostmarkPage = () => {
+  const { t } = useTranslation()
   const { options: { server_id: serverId } = {} } = usePostmarkOptions()
   const templatesTable = usePostmarkDataTable({ type: "template", serverId })
   const layoutsTable = usePostmarkDataTable({ type: "layout", serverId })
@@ -29,7 +31,7 @@ const PostmarkPage = () => {
             <div className="flex gap-2 ml-auto">
               <DataTable.Search placeholder={activeTab === "template" ? "Jump to a template" : "Jump to a layout"} />
               <DataTableAction
-                label={("actions.create")}
+                label={t("actions.create")}
                 onClick={() => window.open(createUrl, "_blank")}
               />
             </div>
