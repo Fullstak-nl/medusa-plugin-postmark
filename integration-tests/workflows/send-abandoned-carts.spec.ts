@@ -1,13 +1,12 @@
 import { medusaIntegrationTestRunner } from "@medusajs/test-utils"
-import { createAdminUser, adminHeaders, generatePublishableKey, generateStoreHeaders } from "../helpers/create-admin-user"
 import { ABANDONED_CART_MODULE } from "../../src/modules/abandoned-cart"
-import { createCartWorkflow, createRegionsWorkflow, createSalesChannelsWorkflow, updateCartsStep } from "@medusajs/medusa/core-flows"
+import { createCartWorkflow, createRegionsWorkflow, createSalesChannelsWorkflow } from "@medusajs/medusa/core-flows"
 import { sendAbandonedCartsWorkflow } from "../../src/workflows"
-import { Module, Modules } from "@medusajs/framework/utils"
+import { Modules } from "@medusajs/framework/utils"
 jest.setTimeout(60 * 1000)
 
 medusaIntegrationTestRunner({
-    testSuite: ({ dbConnection, getContainer }) => {
+    testSuite: ({ getContainer }) => {
         let region: any
         let salesChannel: any
         let appContainer: any
@@ -18,7 +17,6 @@ medusaIntegrationTestRunner({
 
         beforeEach(async () => {
             jest.useFakeTimers();
-            await createAdminUser(dbConnection, adminHeaders, appContainer)
 
             region = (await createRegionsWorkflow(appContainer).run({
                 input: {
