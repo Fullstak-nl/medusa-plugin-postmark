@@ -6,7 +6,7 @@ import {
 } from "@medusajs/framework/workflows-sdk"
 import zod from "zod"
 import { defaultAbandonedCartData } from "./steps/default-hooks/abandoned-cart"
-import { CartDTO, CustomerDTO } from "@medusajs/framework/types"
+import { CartDTO, CreateNotificationDTO, CustomerDTO } from "@medusajs/framework/types"
 import { ReminderSchedule } from "../types/reminder-schedules"
 
 export type NotificationDataWorkflowInput = {
@@ -33,7 +33,7 @@ export const notificationDataWorkflow = createWorkflow(
         )
         const notificationDataHookResult = notificationDataHook.getResult()
 
-        const notificationData = transform(
+        const notificationData: CreateNotificationDTO[] = transform(
             { notificationDataHookResult, carts },
             async ({ notificationDataHookResult, carts }) => {
                 if (notificationDataHookResult)

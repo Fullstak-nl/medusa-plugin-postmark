@@ -5,7 +5,8 @@ import {
     ReminderScheduleListResponse,
     ReminderScheduleResponse
 } from "../../types/reminder-schedules"
-import { PostmarkTemplate } from "../../types/templates";
+import { PostmarkTemplate } from "../../types/templates"
+import { ValidationResponse } from "../../types/validation"
 
 
 class ReminderSchedules {
@@ -56,6 +57,15 @@ class ReminderSchedules {
             `/admin/postmark/abandoned-carts/reminders/schedules/${id}`,
             {
                 method: "DELETE",
+            }
+        )
+    }
+
+    async validate() {
+        return this.client.fetch<ValidationResponse>(
+            "/admin/postmark/abandoned-carts/reminders/validate",
+            {
+                method: "POST",
             }
         )
     }
