@@ -53,15 +53,16 @@ export async function POST(req: MedusaRequest, res: MedusaResponse<ValidationRes
             }
 
             // Use Postmark's validation endpoint
+            // Pass an empty object to get ALL required variables in SuggestedTemplateModel
             const templateDetails = await postmarkModuleService.getTemplate(template.TemplateId)
-            const validationResponse = await postmarkModuleService.validateTemplate({
+            const { SuggestedTemplateModel } = await postmarkModuleService.validateTemplate({
                 Subject: templateDetails.Subject || "",
                 HtmlBody: templateDetails.HtmlBody || "",
                 TextBody: templateDetails.TextBody || "",
-                TestRenderModel: notification.data || {}
+                TestRenderModel: {}
             })
 
-            const missingVariables = filterMissing(validationResponse.SuggestedTemplateModel, notification.data)
+            const missingVariables = filterMissing(SuggestedTemplateModel, notification.data)
 
             if (Object.keys(missingVariables).length > 0)
                 validationResults.push({
@@ -88,40 +89,62 @@ export async function POST(req: MedusaRequest, res: MedusaResponse<ValidationRes
     }
 }
 
-const filterMissing = (suggestedObj: Record<string, any>, providedObj: Record<string, any> | undefined | null): Record<string, any> => {
-    const result: Record<string, any> = {}
+/**
+ * Recursively compares a suggested template model with provided data
+ * Returns only the keys that are missing or have missing nested values
+ */
+const filterMissing = (suggested: Record<string, any>, provided: Record<string, any> | undefined | null): Record<string, any> => {
+    const missing: Record<string, any> = {}
 
-    for (const key in suggestedObj) {
-        const suggestedValue = suggestedObj[key]
-        const providedValue = providedObj?.[key]
+    // If provided data is not an object, all suggested keys are missing
+    if (!provided || typeof provided !== 'object' || Array.isArray(provided)) {
+        const result = Object.keys(suggested).reduce((acc, key) => ({ ...acc, [key]: null }), {})
+        return result
+    }
 
-        if (suggestedValue && typeof suggestedValue === 'object' && !Array.isArray(suggestedValue)) {
-            // It's a nested object
-            const nestedMirror = filterMissing(suggestedValue, providedValue)
-            if (Object.keys(nestedMirror).length > 0 || providedValue === undefined || providedValue === null) {
-                result[key] = Object.keys(nestedMirror).length > 0 ? nestedMirror : null
+    for (const key in suggested) {
+        const suggestedVal = suggested[key]
+        const providedVal = provided[key]
+        // Check if the key exists in provided data (undefined or null means missing)
+        const keyIsMissing = providedVal === undefined || providedVal === null
+
+        if (Array.isArray(suggestedVal)) {
+            // Handle arrays
+            if (keyIsMissing || !Array.isArray(providedVal) || providedVal.length === 0) {
+                missing[key] = null
+            } else if (suggestedVal.length > 0 && typeof suggestedVal[0] === 'object' && !Array.isArray(suggestedVal[0])) {
+                // Check nested object in array
+                const nestedMissing = filterMissing(suggestedVal[0], providedVal[0])
+                if (Object.keys(nestedMissing).length > 0) {
+                    missing[key] = [nestedMissing]
+                }
             }
-        } else if (Array.isArray(suggestedValue)) {
-            // It's an array
-            if (!Array.isArray(providedValue) || providedValue.length === 0) {
-                result[key] = null
-            } else if (suggestedValue.length > 0 && typeof suggestedValue[0] === 'object') {
-                // Compare first element of array if it's an object
-                const nestedMirror = filterMissing(suggestedValue[0], providedValue[0])
-                if (Object.keys(nestedMirror).length > 0) {
-                    result[key] = [nestedMirror]
+        } else if (suggestedVal && typeof suggestedVal === 'object') {
+            // Handle nested objects
+            if (keyIsMissing) {
+                // When parent is missing, recurse with null to get full nested structure
+                const nestedMissing = filterMissing(suggestedVal, null)
+                missing[key] = nestedMissing
+            } else if (typeof providedVal !== 'object' || Array.isArray(providedVal)) {
+                // Provided value is not an object when we expect one
+                const nestedMissing = filterMissing(suggestedVal, null)
+                missing[key] = nestedMissing
+            } else {
+                // Recursively check nested properties
+                const nestedMissing = filterMissing(suggestedVal, providedVal)
+                if (Object.keys(nestedMissing).length > 0) {
+                    missing[key] = nestedMissing
                 }
             }
         } else {
-            // It's a primitive value
-            // Check if the value exists in provided data
-            if (providedValue === undefined || providedValue === null) {
-                result[key] = null
+            // Handle primitive values
+            if (keyIsMissing) {
+                missing[key] = null
             }
         }
     }
 
-    return result
+    return missing
 }
 
 const mockCart: Record<string, any> = {

@@ -16,11 +16,9 @@ export type NotificationDataWorkflowInput = {
 export const notificationDataWorkflow = createWorkflow(
     "notification-data",
     function (input: NotificationDataWorkflowInput) {
-        const { carts } = input
-
         const notificationDataHook = createHook(
             "abandonedCartNotificationData",
-            { carts },
+            input,
             {
                 resultValidator: zod.array(zod.object({
                     to: zod.string(),
@@ -34,7 +32,7 @@ export const notificationDataWorkflow = createWorkflow(
         const notificationDataHookResult = notificationDataHook.getResult()
 
         const notificationData: CreateNotificationDTO[] = transform(
-            { notificationDataHookResult, carts },
+            { notificationDataHookResult, carts: input.carts },
             async ({ notificationDataHookResult, carts }) => {
                 if (notificationDataHookResult)
                     return notificationDataHookResult
