@@ -1,4 +1,5 @@
-import { defineMiddlewares, validateAndTransformBody } from "@medusajs/framework/http"
+import { defineMiddlewares, validateAndTransformBody, validateAndTransformQuery } from "@medusajs/framework/http"
+import { createFindParams } from "@medusajs/medusa/api/utils/validators"
 import {
     CreateReminderScheduleSchema,
     UpdateReminderScheduleSchema
@@ -14,10 +15,38 @@ export default defineMiddlewares({
             ],
         },
         {
+            matcher: "/admin/postmark/abandoned-carts/reminders/schedules",
+            methods: ["GET"],
+            middlewares: [
+                validateAndTransformQuery(createFindParams(), {
+                    defaults: [
+                        "id",
+                        "template_id",
+                        "delays_iso",
+                    ],
+                    isList: true,
+                }),
+            ],
+        },
+        {
             matcher: "/admin/postmark/abandoned-carts/reminders/schedules/:id",
             methods: ["POST"],
             middlewares: [
                 validateAndTransformBody(UpdateReminderScheduleSchema),
+            ],
+        },
+        {
+            matcher: "/admin/postmark/abandoned-carts/reminders/schedules/:id",
+            methods: ["GET"],
+            middlewares: [
+                validateAndTransformQuery(createFindParams(), {
+                    defaults: [
+                        "id",
+                        "template_id",
+                        "delays_iso",
+                    ],
+                    isList: false,
+                }),
             ],
         },
     ],

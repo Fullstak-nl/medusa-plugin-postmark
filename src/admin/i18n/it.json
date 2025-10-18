@@ -1,0 +1,15 @@
+{
+    "templates": {
+        "name": "Template"
+    },
+    "reminder_schedules": {
+        "title": "Promemoria",
+        "delays": "Ritardi",
+        "enabled": "Abilitato",
+        "disabled": "Disabilitato",
+        "delete": {
+            "confirmation": "Stai per eliminare un promemoria. Questa azione non può essere annullata.",
+            "successToast": "Il promemoria è stato eliminato con successo."
+        }
+    }
+}

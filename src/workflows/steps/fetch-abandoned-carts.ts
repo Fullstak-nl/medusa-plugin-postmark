@@ -1,6 +1,7 @@
 import { createStep, StepResponse } from "@medusajs/framework/workflows-sdk"
 import { ReminderSchedule } from "../../types/reminder-schedules"
 import { CartDTO, CustomerDTO } from "@medusajs/framework/types"
+import { Temporal } from "temporal-polyfill"
 
 type FetchAbandonedCartsStepInput = {
     reminderSchedules: Array<ReminderSchedule>
@@ -14,8 +15,8 @@ export const fetchAbandonedCarts = createStep(
 
         // Transform reminder schedules into a flat array of reminders with delay and template
         const reminders = reminderSchedules.flatMap(schedule =>
-            schedule.offset_hours.map(hours => ({
-                delay: parseFloat(hours),
+            schedule.delays_iso.map(duration => ({
+                delay: Temporal.Duration.from(duration).total("hours"),
                 template: schedule.template_id,
                 schedule: schedule
             }))

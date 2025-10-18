@@ -3,13 +3,14 @@ import { ABANDONED_CART_MODULE } from "../../src/modules/abandoned-cart"
 import { createCartWorkflow, createRegionsWorkflow, createSalesChannelsWorkflow } from "@medusajs/medusa/core-flows"
 import { sendAbandonedCartsWorkflow } from "../../src/workflows"
 import { Modules } from "@medusajs/framework/utils"
+import { MedusaContainer } from "@medusajs/framework"
 jest.setTimeout(60 * 1000)
 
 medusaIntegrationTestRunner({
     testSuite: ({ getContainer }) => {
         let region: any
         let salesChannel: any
-        let appContainer: any
+        let appContainer: MedusaContainer
 
         beforeAll(async () => {
             appContainer = getContainer()
@@ -39,15 +40,15 @@ medusaIntegrationTestRunner({
                 const abandonedCartModule = appContainer.resolve(ABANDONED_CART_MODULE)
                 const reminderSchedules = await abandonedCartModule.createReminderSchedules([{
                     enabled: true,
-                    offset_hours: [
-                        "0.01666667" /* 1 minute */,
-                        "0.05" /* 3 minutes */
+                    delays_iso: [
+                        "PT1M" /* 1 minute */,
+                        "PT3M" /* 3 minutes */
                     ],
                     template_id: "reminder1"
                 }, {
                     enabled: true,
-                    offset_hours: [
-                        "0.0333333" /* 2 minutes */,
+                    delays_iso: [
+                        "PT2M" /* 2 minutes */,
                     ],
                     template_id: "reminder2"
                 }])
@@ -91,7 +92,7 @@ medusaIntegrationTestRunner({
                 const abandonedCartModule = appContainer.resolve(ABANDONED_CART_MODULE)
                 const reminderSchedules = await abandonedCartModule.createReminderSchedules([{
                     enabled: true,
-                    offset_hours: ["0.01666667"],
+                    delays_iso: ["PT1M"],
                     template_id: "test-reminder"
                 }])
 
@@ -141,7 +142,7 @@ medusaIntegrationTestRunner({
 
                 const reminderSchedules = await abandonedCartModule.createReminderSchedules([{
                     enabled: true,
-                    offset_hours: ["0.01666667"],
+                    delays_iso: ["PT1M"],
                     template_id: "metadata-test"
                 }])
 
@@ -184,7 +185,7 @@ medusaIntegrationTestRunner({
 
                 const reminderSchedules = await abandonedCartModule.createReminderSchedules([{
                     enabled: true,
-                    offset_hours: ["0.01666667"],
+                    delays_iso: ["PT1M"],
                     template_id: "batch-test"
                 }])
 
@@ -216,7 +217,7 @@ medusaIntegrationTestRunner({
 
                 const reminderSchedules = await abandonedCartModule.createReminderSchedules([{
                     enabled: true,
-                    offset_hours: ["0.01666667"],
+                    delays_iso: ["PT1M"],
                     template_id: "pagination-test"
                 }])
 
@@ -253,7 +254,7 @@ medusaIntegrationTestRunner({
                 const abandonedCartModule = appContainer.resolve(ABANDONED_CART_MODULE)
                 const reminderSchedules = await abandonedCartModule.createReminderSchedules([{
                     enabled: true,
-                    offset_hours: ["1"], // Exactly 1 hour
+                    delays_iso: ["PT1H"], // Exactly 1 hour
                     template_id: "boundary-test"
                 }])
 
@@ -297,7 +298,7 @@ medusaIntegrationTestRunner({
                 const abandonedCartModule = appContainer.resolve(ABANDONED_CART_MODULE)
                 const reminderSchedules = await abandonedCartModule.createReminderSchedules([{
                     enabled: true,
-                    offset_hours: ["0.01666667", "0.03333333"], // 1 minute and 2 minutes
+                    delays_iso: ["PT1M", "PT2M"], // 1 minute and 2 minutes
                     template_id: "duplicate-test"
                 }])
 
@@ -350,7 +351,7 @@ medusaIntegrationTestRunner({
 
                 const reminderSchedules = await abandonedCartModule.createReminderSchedules([{
                     enabled: true,
-                    offset_hours: ["1"],
+                    delays_iso: ["PT1H"],
                     template_id: "recent-test"
                 }])
 
@@ -372,7 +373,7 @@ medusaIntegrationTestRunner({
                 const abandonedCartModule = appContainer.resolve(ABANDONED_CART_MODULE)
                 const reminderSchedules = await abandonedCartModule.createReminderSchedules([{
                     enabled: true,
-                    offset_hours: ["0.05"], // 3 minutes
+                    delays_iso: ["PT3M"], // 3 minutes
                     template_id: "update-before-test"
                 }])
 
@@ -429,7 +430,7 @@ medusaIntegrationTestRunner({
                 const abandonedCartModule = appContainer.resolve(ABANDONED_CART_MODULE)
                 const reminderSchedules = await abandonedCartModule.createReminderSchedules([{
                     enabled: true,
-                    offset_hours: ["0.05", "0.1"], // 3 minutes and 6 minutes
+                    delays_iso: ["PT3M", "PT6M"], // 3 minutes and 6 minutes
                     template_id: "update-after-test"
                 }])
 

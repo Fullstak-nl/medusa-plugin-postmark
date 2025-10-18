@@ -43,6 +43,34 @@ class PostmarkModuleService extends MedusaService({}) {
     }) {
         return await this.client.validateTemplate(params)
     }
+
+    async list(filter: { template_id: string | string[] }) {
+        const ids = Array.isArray(filter.template_id)
+            ? filter.template_id
+            : [filter.template_id]
+
+        const templates = await Promise.all(
+            ids.map(async (id) => {
+                try {
+                    // Template IDs can be numeric or alias strings
+                    const numericId = parseInt(id, 10)
+                    const template = isNaN(numericId)
+                        ? await this.client.getTemplate(id)
+                        : await this.client.getTemplate(numericId)
+
+                    return {
+                        ...template,
+                        template_id: id,
+                    }
+                } catch (error) {
+                    console.warn(`Template with ID ${id} not found:`, error)
+                    return null
+                }
+            })
+        )
+
+        return templates.filter((t) => t !== null)
+    }
 }
 
 

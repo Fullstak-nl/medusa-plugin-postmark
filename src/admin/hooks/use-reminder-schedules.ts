@@ -9,23 +9,27 @@ import {
 } from "@tanstack/react-query"
 import { sdk } from "../lib/sdk"
 import { CreateReminderScheduleRequest, ReminderScheduleListResponse, ReminderScheduleResponse, UpdateReminderScheduleRequest } from "../../types/reminder-schedules"
-import { usePostmarkTemplates } from "./use-postmark-templates"
-import { useMemo } from "react"
+import { HttpTypes } from "@medusajs/framework/types"
 
 const POSTMARK_REMINDER_SCHEDULES_QUERY_KEY = "postmark_reminder_schedules" as const
 
-export const postmarkReminderSchedulesQueryKeys = {
+const postmarkReminderSchedulesQueryKeys = {
     all: [POSTMARK_REMINDER_SCHEDULES_QUERY_KEY] as const,
-    schedules: () => [...postmarkReminderSchedulesQueryKeys.all, "schedules"] as const,
-    schedule: (id: string) => [...postmarkReminderSchedulesQueryKeys.schedules(), id] as const,
+    schedules: (query?: Record<string, any>) => [...postmarkReminderSchedulesQueryKeys.all, "schedules", query ? { query } : undefined].filter(
+        (k) => !!k
+    ),
+    schedule: (id: string, query?: Record<string, any>) => [...postmarkReminderSchedulesQueryKeys.schedules(), id, query ? { query } : undefined].filter(
+        (k) => !!k
+    )
 }
 
-const useReminderSchedules = (
+export const useReminderSchedules = (
+    query?: HttpTypes.FindParams,
     options?: UseQueryOptions<ReminderScheduleListResponse, FetchError>
 ) => {
     const { data, ...rest } = useQuery({
-        queryFn: async () => sdk.admin.postmark.reminderSchedules.list(),
-        queryKey: postmarkReminderSchedulesQueryKeys.schedules(),
+        queryFn: async () => sdk.admin.postmark.reminderSchedules.list(query),
+        queryKey: postmarkReminderSchedulesQueryKeys.schedules(query),
         placeholderData: keepPreviousData,
         ...options,
     })
@@ -33,34 +37,14 @@ const useReminderSchedules = (
     return { ...data, ...rest }
 }
 
-export const useReminderSchedulesWithNames = (
-    options?: UseQueryOptions<ReminderScheduleListResponse, FetchError>
-) => {
-    const { schedules, isPending: isSchedulesPending, ...rest } = useReminderSchedules(options)
-    const { Templates: templates, isPending: isTemplatesPending } = usePostmarkTemplates()
-
-    const schedulesWithNames = useMemo(() => {
-        if (!schedules || !templates) return []
-
-        return schedules.map(schedule => {
-            const template = templates.find(t => t.TemplateId.toString() === schedule.template_id)
-            return {
-                ...schedule,
-                template_name: template?.Name || template?.TemplateId.toString() || "-",
-            }
-        })
-    }, [schedules, templates])
-
-    return { schedules: schedulesWithNames, isPending: isSchedulesPending || isTemplatesPending, ...rest }
-}
-
 export const useReminderSchedule = (
     id: string,
+    query?: Record<string, any>,
     options?: UseQueryOptions<ReminderScheduleResponse, FetchError>
 ) => {
     const { data, ...rest } = useQuery({
-        queryFn: async () => sdk.admin.postmark.reminderSchedules.get(id),
-        queryKey: postmarkReminderSchedulesQueryKeys.schedule(id),
+        queryFn: async () => sdk.admin.postmark.reminderSchedules.retrieve(id, query),
+        queryKey: postmarkReminderSchedulesQueryKeys.schedule(id, query),
         placeholderData: keepPreviousData,
         ...options,
     })

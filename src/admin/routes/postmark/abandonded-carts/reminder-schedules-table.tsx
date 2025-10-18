@@ -7,19 +7,22 @@ import {
   useDataTable,
   usePrompt,
 } from "@medusajs/ui"
+import { useLocale } from "react-aria"
 import { useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import { PencilSquare, Trash } from "@medusajs/icons"
 import { useTranslation } from "react-i18next"
 import { DataTableAction } from "../../../components/data-table-action"
 import { ReminderSchedule } from "../../../../types/reminder-schedules"
-import { useDeleteReminderSchedules, useReminderSchedulesWithNames } from "../../../hooks/use-reminder-schedules"
+import { useDeleteReminderSchedules, useReminderSchedules } from "../../../hooks/use-reminder-schedules"
 import { Container } from "../../../components/general/container"
+import { DurationFormat } from "@formatjs/intl-durationformat"
+import { Temporal } from "temporal-polyfill"
 
 const ReminderSchedulesTable = () => {
-  const { t } = useTranslation()
+  const { t } = useTranslation("postmark")
 
-  const { schedules = [], isPending } = useReminderSchedulesWithNames()
+  const { schedules = [], isPending } = useReminderSchedules({ fields: "+template.*" })
   const columns = useColumns()
 
   const table = useDataTable({
@@ -34,7 +37,7 @@ const ReminderSchedulesTable = () => {
     <Container>
       <DataTable instance={table}>
         <DataTable.Toolbar className="flex flex-col items-start justify-between gap-2 md:flex-row md:items-center">
-          <Heading>{t("reminderSchedules")}</Heading>
+          <Heading>{t("reminder_schedules.title")}</Heading>
           <DataTableAction
             label={t("actions.create")}
             to="create"
@@ -51,7 +54,11 @@ export default ReminderSchedulesTable
 const columnHelper = createDataTableColumnHelper<ReminderSchedule>()
 
 const useColumns = () => {
-  const { t } = useTranslation()
+  const { t } = useTranslation("postmark")
+  const { locale } = useLocale()
+  const formatter = useMemo(() => {
+    return new DurationFormat(locale, { style: 'long' })
+  }, [locale])
   const navigate = useNavigate()
   const prompt = usePrompt()
 
@@ -60,7 +67,7 @@ const useColumns = () => {
   const handleDelete = async (schedule: ReminderSchedule) => {
     const res = await prompt({
       title: t("general.areYouSure"),
-      description: t("delete.confirmation"),
+      description: t("reminder_schedules.delete.confirmation"),
       confirmText: t("actions.delete"),
       cancelText: t("actions.cancel"),
     })
@@ -72,7 +79,7 @@ const useColumns = () => {
     await mutateAsync(schedule.id, {
       onSuccess: () => {
         toast.success(
-          t("delete.successToast")
+          t("reminder_schedules.delete.successToast")
         )
       },
       onError: (e) => {
@@ -83,19 +90,25 @@ const useColumns = () => {
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor("template_name", {
-        header: t("template_name"),
+      columnHelper.accessor("template.Name", {
+        header: t("templates.name"),
       }),
-      columnHelper.accessor("offset_hours", {
-        header: t("offset_hours")
+      columnHelper.accessor("delays_iso", {
+        header: t("reminder_schedules.delays"),
+        cell: ({ getValue }) => {
+          const delays_iso = getValue()
+          if (!delays_iso || delays_iso.length === 0) return '-'
+
+          return delays_iso.map((duration) => formatter.format(Temporal.Duration.from(duration))).join('\n')
+        }
       }),
       columnHelper.accessor("enabled", {
-        header: t("enabled"),
+        header: t("reminder_schedules.enabled"),
         cell: ({ getValue }) => {
           const enabled = getValue()
           return (
             <Badge color={enabled ? "green" : "grey"} size="xsmall">
-              {enabled ? "Enabled" : "Disabled"}
+              {enabled ? t("reminder_schedules.enabled") : t("reminder_schedules.disabled")}
             </Badge>
           )
         },

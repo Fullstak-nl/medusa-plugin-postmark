@@ -1,0 +1,15 @@
+{
+    "templates": {
+        "name": "Template"
+    },
+    "reminder_schedules": {
+        "title": "Reminder Schedules",
+        "delays": "Delays",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "delete": {
+            "confirmation": "You are about to delete a reminder schedule. This action cannot be undone.",
+            "successToast": "Reminder schedule was successfully deleted."
+        }
+    }
+}

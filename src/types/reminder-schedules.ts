@@ -1,4 +1,6 @@
 import { z } from "zod"
+import { PostmarkTemplate } from "./templates"
+import { Temporal } from "temporal-polyfill"
 
 /**
  * Base reminder schedule entity - represents the database model
@@ -7,8 +9,8 @@ export interface ReminderSchedule {
     id: string
     enabled: boolean
     template_id: string
-    offset_hours: string[]
-    template_name?: string
+    template?: PostmarkTemplate
+    delays_iso: string[] // ISO 8601 duration strings (e.g., "PT1H", "PT24H", "P1D")
     created_at?: Date
     updated_at?: Date
     deleted_at?: Date | null
@@ -21,7 +23,7 @@ export interface ReminderSchedule {
 export interface CreateReminderScheduleRequest {
     enabled: boolean
     template_id: string
-    offset_hours: string[]
+    delays_iso: string[] // ISO 8601 duration strings
 }
 
 /**
@@ -30,7 +32,7 @@ export interface CreateReminderScheduleRequest {
 export interface UpdateReminderScheduleRequest {
     enabled?: boolean
     template_id?: string
-    offset_hours?: string[]
+    delays_iso?: string[] // ISO 8601 duration strings
 }
 
 /**
@@ -47,13 +49,18 @@ export interface ReminderScheduleResponse {
     schedule: ReminderSchedule
 }
 
+// ISO 8601 duration regex pattern
+const ISO_DURATION_REGEX = /^P(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?)?$/
+
 /**
  * Zod schema for creating reminder schedules
  */
 export const CreateReminderScheduleSchema = z.object({
     enabled: z.boolean(),
     template_id: z.string().nonempty(),
-    offset_hours: z.array(z.string()).nonempty()
+    delays_iso: z.array(
+        z.string().regex(ISO_DURATION_REGEX, "Invalid ISO 8601 duration format")
+    ).nonempty()
 })
 
 /**
@@ -62,7 +69,9 @@ export const CreateReminderScheduleSchema = z.object({
 export const UpdateReminderScheduleSchema = z.object({
     enabled: z.boolean().optional(),
     template_id: z.string().nonempty().optional(),
-    offset_hours: z.array(z.string()).nonempty().optional()
+    delays_iso: z.array(
+        z.string().regex(ISO_DURATION_REGEX, "Invalid ISO 8601 duration format")
+    ).nonempty().optional()
 })
 
 /**

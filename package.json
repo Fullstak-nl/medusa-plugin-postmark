@@ -40,18 +40,13 @@
       "test:unit": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --forceExit"
    },
    "devDependencies": {
-      "@medusajs/admin-sdk": "2.10.3",
-      "@medusajs/cli": "2.10.3",
-      "@medusajs/framework": "2.10.3",
-      "@medusajs/icons": "2.10.3",
-      "@medusajs/medusa": "2.10.3",
-      "@medusajs/test-utils": "2.10.3",
-      "@medusajs/ui": "4.0.23",
-      "@mikro-orm/cli": "6.4.3",
-      "@mikro-orm/core": "6.4.3",
-      "@mikro-orm/knex": "6.4.3",
-      "@mikro-orm/migrations": "6.4.3",
-      "@mikro-orm/postgresql": "6.4.3",
+      "@medusajs/admin-sdk": "2.10.3-dev-1760618158535",
+      "@medusajs/cli": "2.10.3-dev-1760618158535",
+      "@medusajs/framework": "2.10.3-dev-1760618158535",
+      "@medusajs/icons": "2.10.3-dev-1760618158535",
+      "@medusajs/medusa": "2.10.3-dev-1760618158535",
+      "@medusajs/test-utils": "2.10.3-dev-1760618158535",
+      "@medusajs/ui": "4.0.23-dev-1760618158535",
       "@swc/core": "1.5.7",
       "@swc/jest": "^0.2.36",
       "@types/jest": "^29.5.13",
@@ -59,9 +54,7 @@
       "@types/node": "^20.0.0",
       "@types/react": "^18.3.2",
       "@types/react-dom": "^18.2.25",
-      "awilix": "^8.0.1",
       "jest": "^29.7.0",
-      "pg": "^8.13.0",
       "prop-types": "^15.8.1",
       "react": "^18.2.0",
       "react-dom": "^18.2.0",
@@ -77,18 +70,12 @@
       "@medusajs/icons": "^2.10.3",
       "@medusajs/medusa": "^2.10.3",
       "@medusajs/test-utils": "^2.10.3",
-      "@medusajs/ui": "^4.0.23",
-      "@mikro-orm/cli": "6.4.3",
-      "@mikro-orm/core": "6.4.3",
-      "@mikro-orm/knex": "6.4.3",
-      "@mikro-orm/migrations": "6.4.3",
-      "@mikro-orm/postgresql": "6.4.3",
-      "awilix": "^8.0.1",
-      "pg": "^8.13.0"
+      "@medusajs/ui": "^4.0.23"
    },
    "dependencies": {
-      "pdfkit": "^0.17.2",
-      "postmark": "^4.0.5"
+      "@formatjs/intl-durationformat": "^0.7.6",
+      "postmark": "^4.0.5",
+      "temporal-polyfill": "^0.3.0"
    },
    "engines": {
       "node": ">=20"

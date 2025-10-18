@@ -3,6 +3,7 @@ import { notificationDataWorkflow } from "../../../../../../workflows/notificati
 import { ABANDONED_CART_MODULE } from "../../../../../../modules/abandoned-cart"
 import { ValidationResponse, ValidationResult } from "../../../../../../types/validation"
 import { MedusaError } from "@medusajs/framework/utils"
+import { Temporal } from "temporal-polyfill"
 
 export async function POST(req: MedusaRequest, res: MedusaResponse<ValidationResponse>) {
     const logger = req.scope.resolve("logger")
@@ -26,7 +27,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse<ValidationRes
         // Create mock notification data for each schedule
         const mockCartsGrouped = schedules.map((schedule) => [
             {
-                delay: parseInt(schedule.offset_hours[0] || "24"),
+                delay: Temporal.Duration.from(schedule.delays_iso[0]).total("hours"),
                 template: schedule.template_id,
                 schedule
             },

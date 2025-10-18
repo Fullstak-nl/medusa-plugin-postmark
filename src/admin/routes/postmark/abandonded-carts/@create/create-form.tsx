@@ -106,18 +106,22 @@ export const CreateReminderScheduleForm = () => {
 
                         <Form.Field
                             control={form.control}
-                            name="offset_hours"
+                            name="delays_iso"
                             render={({ field: { ...field } }) => {
                                 return (
                                     <Form.Item>
                                         <Form.Label>
-                                            Delays (in hours)
+                                            Delays (ISO 8601 duration)
                                         </Form.Label>
                                         <Form.Control>
                                             <ChipInput
                                                 {...field}
+                                                placeholder="PT1H, PT24H, P1D"
                                             />
                                         </Form.Control>
+                                        <Form.Hint>
+                                            Enter ISO 8601 durations (e.g., PT1H for 1 hour, PT24H or P1D for 1 day)
+                                        </Form.Hint>
                                         <Form.ErrorMessage />
                                     </Form.Item>
                                 )
