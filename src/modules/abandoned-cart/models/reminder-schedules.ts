@@ -1,5 +1,4 @@
-import { ArrayProperty, ComputedProperty, model, EntityBuilder, BaseProperty } from "@medusajs/framework/utils"
-import { Temporal } from "temporal-polyfill"
+import { model } from "@medusajs/framework/utils"
 
 const ReminderSchedule = model.define("reminder_schedule", {
   id: model.id().primaryKey(),

@@ -4,35 +4,37 @@ import { useMutation } from "@tanstack/react-query"
 import { Badge, Text, Tooltip, toast } from "@medusajs/ui"
 import { MedusaError } from "@medusajs/framework/utils"
 import { sdk } from "../../../lib/sdk"
+import { useTranslation } from "react-i18next"
 import _ from "lodash"
 
 export const ValidateTemplatesSection = () => {
+  const { t } = useTranslation("postmark")
   const { mutateAsync, isPending, data } = useMutation({
     mutationFn: async () => {
       return await sdk.admin.postmark.reminderSchedules.validate()
     },
     onError: (err: MedusaError) => {
-      toast.error("Validation Error", { description: err.message })
+      toast.error(t("validate_templates.error_title"), { description: err.message })
     }
   })
 
   return (
     <Container>
       <Header
-        title="Validate Notification Data"
+        title={t("validate_templates.title")}
         actions={[
           ...(data ? [{
             type: "custom" as const,
             children: data.success ? (
               <Tooltip content={data.message}>
                 <Badge color="green" size="small">
-                  All Valid
+                  {t("validate_templates.all_valid")}
                 </Badge>
               </Tooltip>
             ) : (
               <Tooltip content={data.message}>
                 <Badge color="red" size="small">
-                  Missing Data ({data?.results?.length})
+                  {t("validate_templates.missing_data", { count: data?.results?.length })}
                 </Badge>
               </Tooltip>
             )
@@ -42,7 +44,7 @@ export const ValidateTemplatesSection = () => {
             props: {
               onClick: () => mutateAsync(),
               disabled: isPending,
-              children: isPending ? "Validating..." : "Validate Templates",
+              children: isPending ? t("validate_templates.validating") : t("validate_templates.validate_button"),
               variant: "secondary"
             }
           }
@@ -53,7 +55,7 @@ export const ValidateTemplatesSection = () => {
           {data.results.map((result) => (
             <div key={result.templateId} className="border rounded-md p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <Text weight="plus">{result.templateName || "Unknown Template"}</Text>
+                <Text weight="plus">{result.templateName || t("validate_templates.unknown_template")}</Text>
                 {result.templateId && (
                   <Text size="xsmall" className="text-ui-fg-subtle">
                     ID: {result.templateId}
@@ -64,7 +66,7 @@ export const ValidateTemplatesSection = () => {
               {result.missingVariables && Object.keys(result.missingVariables).length > 0 && (
                 <div>
                   <Text size="small" weight="plus" className="text-ui-fg-subtle mb-1">
-                    Missing Variables:
+                    {t("validate_templates.missing_variables")}:
                   </Text>
                   <div className="flex flex-wrap gap-1">
                     {renderMissingVariables(result.missingVariables)}
@@ -75,7 +77,7 @@ export const ValidateTemplatesSection = () => {
               {result.providedData && (
                 <details className="text-sm">
                   <summary className="cursor-pointer text-ui-fg-subtle hover:text-ui-fg-base">
-                    View Provided Data
+                    {t("validate_templates.view_provided_data")}
                   </summary>
                   <pre className="mt-2 p-2 bg-ui-bg-subtle rounded text-xs overflow-auto max-h-48">
                     {JSON.stringify(result.providedData, null, 2)}

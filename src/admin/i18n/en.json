@@ -11,5 +11,16 @@
             "confirmation": "You are about to delete a reminder schedule. This action cannot be undone.",
             "successToast": "Reminder schedule was successfully deleted."
         }
+    },
+    "validate_templates": {
+        "title": "Validate Notification Data",
+        "error_title": "Validation Error",
+        "all_valid": "All Valid",
+        "missing_data": "Missing Data ({{count}})",
+        "validating": "Validating...",
+        "validate_button": "Validate Templates",
+        "unknown_template": "Unknown Template",
+        "missing_variables": "Missing Variables",
+        "view_provided_data": "View Provided Data"
     }
 }

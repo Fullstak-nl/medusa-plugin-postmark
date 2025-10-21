@@ -5,6 +5,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     const { limit: count, offset, q, order } = req.query as { q: string, order: string, limit: string, offset: string }
 
     const postmarkModuleService = req.scope.resolve("postmarkModuleService")
+    const cache = req.scope.resolve("caching")
 
     const queryParams: any = {
         count: parseInt(count),
@@ -12,7 +13,13 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         templateType: Models.TemplateTypes.Standard
     }
 
-    const templates = await postmarkModuleService.getTemplates(queryParams)
+    // Dont use cache if caching module is not enabled
+    const cacheKey = await cache?.computeKey(req.query)
+    let templates: Models.Templates = cacheKey ? await cache.get({ key: cacheKey }) : await postmarkModuleService.getTemplates(queryParams)
+    if (!templates) {
+        templates = await postmarkModuleService.getTemplates(queryParams)
+        await cache.set({ key: cacheKey, data: templates })
+    }
     if (q)
         templates.Templates = templates.Templates.filter(
             (template) => template.Name.toLowerCase().includes((q as string).toLowerCase())

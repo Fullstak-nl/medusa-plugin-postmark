@@ -11,5 +11,16 @@
             "confirmation": "Stai per eliminare un promemoria. Questa azione non può essere annullata.",
             "successToast": "Il promemoria è stato eliminato con successo."
         }
+    },
+    "validate_templates": {
+        "title": "Valida Dati di Notifica",
+        "error_title": "Errore di Validazione",
+        "all_valid": "Tutto Valido",
+        "missing_data": "Dati Mancanti ({{count}})",
+        "validating": "Validazione in corso...",
+        "validate_button": "Valida Template",
+        "unknown_template": "Template Sconosciuto",
+        "missing_variables": "Variabili Mancanti",
+        "view_provided_data": "Visualizza Dati Forniti"
     }
 }

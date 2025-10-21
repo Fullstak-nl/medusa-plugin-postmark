@@ -14,10 +14,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       ...req.queryConfig,
     },
     {
-      cache: {
-        enable: true,
-        ttl: 5,
-      },
+      cache: { enable: true },
     }
   )
 
