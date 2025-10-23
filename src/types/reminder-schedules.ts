@@ -49,9 +49,6 @@ export interface ReminderScheduleResponse {
     schedule: ReminderSchedule
 }
 
-// ISO 8601 duration regex pattern
-const ISO_DURATION_REGEX = /^P(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?)?$/
-
 /**
  * Zod schema for creating reminder schedules
  */
@@ -59,7 +56,7 @@ export const CreateReminderScheduleSchema = z.object({
     enabled: z.boolean(),
     template_id: z.string().nonempty(),
     delays_iso: z.array(
-        z.string().regex(ISO_DURATION_REGEX, "Invalid ISO 8601 duration format")
+        z.string().duration()
     ).nonempty()
 })
 
@@ -70,7 +67,7 @@ export const UpdateReminderScheduleSchema = z.object({
     enabled: z.boolean().optional(),
     template_id: z.string().nonempty().optional(),
     delays_iso: z.array(
-        z.string().regex(ISO_DURATION_REGEX, "Invalid ISO 8601 duration format")
+        z.string().duration()
     ).nonempty().optional()
 })
 

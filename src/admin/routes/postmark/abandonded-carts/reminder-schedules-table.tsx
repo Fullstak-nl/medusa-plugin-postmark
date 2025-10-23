@@ -57,7 +57,7 @@ const useColumns = () => {
   const { t } = useTranslation("postmark")
   const { locale } = useLocale()
   const formatter = useMemo(() => {
-    return new DurationFormat(locale, { style: 'narrow' })
+    return new DurationFormat(locale, { style: 'long' })
   }, [locale])
   const navigate = useNavigate()
   const prompt = usePrompt()
@@ -99,7 +99,15 @@ const useColumns = () => {
           const delays_iso = getValue()
           if (!delays_iso || delays_iso.length === 0) return '-'
 
-          return delays_iso.sort().map((duration) => formatter.format(Temporal.Duration.from(duration))).join(' - ')
+          return (
+            <div className="flex flex-wrap gap-1">
+              {delays_iso.sort().map((duration, index) => (
+                <Badge key={index} size="small" color="blue">
+                  {formatter.format(Temporal.Duration.from(duration))}
+                </Badge>
+              ))}
+            </div>
+          )
         }
       }),
       columnHelper.accessor("enabled", {

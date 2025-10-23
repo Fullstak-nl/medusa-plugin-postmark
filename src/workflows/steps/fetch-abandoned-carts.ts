@@ -16,7 +16,7 @@ export const fetchAbandonedCarts = createStep(
         // Transform reminder schedules into a flat array of reminders with delay and template
         const reminders = reminderSchedules.flatMap(schedule =>
             schedule.delays_iso.map(duration => ({
-                delay: Temporal.Duration.from(duration).total("hours"),
+                delay: Temporal.Duration.from(duration).total({ unit: "hours", relativeTo: Temporal.Now.plainDateISO() }),
                 template: schedule.template_id,
                 schedule: schedule
             }))
