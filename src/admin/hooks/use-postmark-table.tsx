@@ -65,7 +65,10 @@ export const usePostmarkDataTable = ({ type, serverId }: UsePostmarkDataTablePro
 
     const columns = useMemo(() => [
         columnHelper.accessor("Name", { header: t("fields.name"), enableSorting: true }),
-        columnHelper.accessor("LayoutTemplate", { header: t("fields.layout"), enableSorting: true }),
+        ...(type === "template"
+            ? [columnHelper.accessor("LayoutTemplate", { header: t("fields.layout"), enableSorting: true })]
+            : []
+        ),
         columnHelper.action({
             actions: [
                 {
