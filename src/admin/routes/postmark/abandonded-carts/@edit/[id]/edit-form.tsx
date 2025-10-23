@@ -137,7 +137,7 @@ export const EditReminderScheduleForm = ({ schedule }: { schedule: ReminderSched
                                                 />
                                             </Form.Control>
                                             <Form.Label className="!mt-0">
-                                                {t("fields.enabled")}
+                                                {t("statuses.enabled")}
                                             </Form.Label>
                                         </div>
                                         <Form.ErrorMessage />

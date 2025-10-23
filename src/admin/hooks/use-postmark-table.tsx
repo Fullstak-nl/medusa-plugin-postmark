@@ -4,6 +4,7 @@ import { sdk } from "../lib/sdk"
 import { Trash } from "@medusajs/icons"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { PostmarkTemplate } from "../../types/templates"
+import { useTranslation } from "react-i18next"
 
 type UsePostmarkDataTableProps = {
     type: "template" | "layout"
@@ -21,6 +22,8 @@ export const usePostmarkDataTable = ({ type, serverId }: UsePostmarkDataTablePro
     const offset = useMemo(() => {
         return pagination.pageIndex * limit
     }, [pagination])
+
+    const { t } = useTranslation("postmark")
 
     const endpoint = type === "template" ? "/admin/postmark/templates" : "/admin/postmark/layouts"
     const queryKey = type === "template" ? "postmark-templates" : "postmark-layouts"
@@ -60,7 +63,22 @@ export const usePostmarkDataTable = ({ type, serverId }: UsePostmarkDataTablePro
         }
     }
 
-    const columns = createColumns(handleDeleteTemplate)
+    const columns = useMemo(() => [
+        columnHelper.accessor("Name", { header: t("fields.name"), enableSorting: true }),
+        columnHelper.accessor("LayoutTemplate", { header: t("fields.layout"), enableSorting: true }),
+        columnHelper.action({
+            actions: [
+                {
+                    label: t("actions.delete"),
+                    icon: <Trash />,
+                    onClick: async (ctx) => {
+                        await handleDeleteTemplate(ctx.row.original.TemplateId)
+                    },
+                },
+            ]
+        }),
+    ], [t, handleDeleteTemplate])
+
 
     const onRowClick = useCallback(
         (_: unknown, row: any) => {
@@ -104,18 +122,3 @@ export const usePostmarkDataTable = ({ type, serverId }: UsePostmarkDataTablePro
 const limit = 15
 const columnHelper = createDataTableColumnHelper<PostmarkTemplate>()
 
-const createColumns = (onDelete: (templateId: number) => Promise<void>) => [
-    columnHelper.accessor("Name", { header: "Name", enableSorting: true }),
-    columnHelper.accessor("LayoutTemplate", { header: "Layout", enableSorting: true }),
-    columnHelper.action({
-        actions: [
-            {
-                label: ("actions.delete"),
-                icon: <Trash />,
-                onClick: async (ctx) => {
-                    await onDelete(ctx.row.original.TemplateId)
-                },
-            },
-        ]
-    }),
-]

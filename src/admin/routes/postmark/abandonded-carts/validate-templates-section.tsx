@@ -14,27 +14,27 @@ export const ValidateTemplatesSection = () => {
       return await sdk.admin.postmark.reminderSchedules.validate()
     },
     onError: (err: MedusaError) => {
-      toast.error(t("validate_templates.error_title"), { description: err.message })
+      toast.error(t("validate_schedules.error_title"), { description: err.message })
     }
   })
 
   return (
     <Container>
       <Header
-        title={t("validate_templates.title")}
+        title={t("validate_schedules.title")}
         actions={[
           ...(data ? [{
             type: "custom" as const,
             children: data.success ? (
               <Tooltip content={data.message}>
                 <Badge color="green" size="small">
-                  {t("validate_templates.all_valid")}
+                  {t("validate_schedules.all_valid")}
                 </Badge>
               </Tooltip>
             ) : (
               <Tooltip content={data.message}>
                 <Badge color="red" size="small">
-                  {t("validate_templates.missing_data", { count: data?.results?.length })}
+                  {t("validate_schedules.missing_data", { count: data?.results?.length })}
                 </Badge>
               </Tooltip>
             )
@@ -44,7 +44,7 @@ export const ValidateTemplatesSection = () => {
             props: {
               onClick: () => mutateAsync(),
               disabled: isPending,
-              children: isPending ? t("validate_templates.validating") : t("validate_templates.validate_button"),
+              children: isPending ? t("validate_schedules.validating") : t("validate_schedules.validate_button"),
               variant: "secondary"
             }
           }
@@ -55,7 +55,7 @@ export const ValidateTemplatesSection = () => {
           {data.results.map((result) => (
             <div key={result.templateId} className="border rounded-md p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <Text weight="plus">{result.templateName || t("validate_templates.unknown_template")}</Text>
+                <Text weight="plus">{result.templateName || t("validate_schedules.unknown_template")}</Text>
                 {result.templateId && (
                   <Text size="xsmall" className="text-ui-fg-subtle">
                     ID: {result.templateId}
@@ -66,7 +66,7 @@ export const ValidateTemplatesSection = () => {
               {result.missingVariables && Object.keys(result.missingVariables).length > 0 && (
                 <div>
                   <Text size="small" weight="plus" className="text-ui-fg-subtle mb-1">
-                    {t("validate_templates.missing_variables")}:
+                    {t("validate_schedules.missing_variables")}:
                   </Text>
                   <div className="flex flex-wrap gap-1">
                     {renderMissingVariables(result.missingVariables)}
@@ -77,7 +77,7 @@ export const ValidateTemplatesSection = () => {
               {result.providedData && (
                 <details className="text-sm">
                   <summary className="cursor-pointer text-ui-fg-subtle hover:text-ui-fg-base">
-                    {t("validate_templates.view_provided_data")}
+                    {t("validate_schedules.view_provided_data")}
                   </summary>
                   <pre className="mt-2 p-2 bg-ui-bg-subtle rounded text-xs overflow-auto max-h-48">
                     {JSON.stringify(result.providedData, null, 2)}

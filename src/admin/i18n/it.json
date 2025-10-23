@@ -1,19 +1,14 @@
 {
+    "$schema": "./$schema.json",
     "templates": {
-        "name": "Template",
-        "title": "Template",
-        "postmark_templates": "Template Postmark",
-        "jump_to_template": "Vai a un template"
+        "title": "Template"
     },
     "layouts": {
-        "title": "Layout",
-        "jump_to_layout": "Vai a un layout"
+        "title": "Layout"
     },
     "reminder_schedules": {
         "title": "Promemoria",
         "delays": "Ritardi",
-        "enabled": "Abilitato",
-        "disabled": "Disabilitato",
         "create_title": "Crea promemoria",
         "create_description": "Crea un nuovo promemoria per i carrelli abbandonati",
         "edit_title": "Modifica promemoria",
@@ -23,7 +18,7 @@
             "successToast": "Il promemoria è stato eliminato con successo."
         }
     },
-    "validate_templates": {
+    "validate_schedules": {
         "title": "Valida Dati di Notifica",
         "error_title": "Errore di Validazione",
         "all_valid": "Tutto Valido",
@@ -37,6 +32,6 @@
     "fields": {
         "unit": "Unità",
         "template": "Template",
-        "enabled": "Abilitato"
+        "layout": "Layout"
     }
 }

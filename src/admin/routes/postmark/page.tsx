@@ -37,7 +37,7 @@ const PostmarkPage = () => {
               <Tabs.Trigger value="layout">{t("layouts.title")}</Tabs.Trigger>
             </Tabs.List>
             <div className="flex gap-2 ml-auto">
-              <DataTable.Search placeholder={activeTab === "template" ? t("templates.jump_to_template") : t("layouts.jump_to_layout")} />
+              <DataTable.Search placeholder={t("filters.searchLabel")} />
               <DataTableAction
                 label={t("actions.create")}
                 onClick={() => window.open(createUrl, "_blank")}
@@ -45,7 +45,7 @@ const PostmarkPage = () => {
             </div>
           </DataTable.Toolbar>
           <DataTable.Table />
-          <DataTable.Pagination translations={paginationTranslations}/>
+          <DataTable.Pagination translations={paginationTranslations} />
         </DataTable>
       </Tabs>
     </Container>

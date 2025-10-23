@@ -1,0 +1,155 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "$schema",
+        "templates",
+        "layouts",
+        "reminder_schedules",
+        "validate_schedules",
+        "fields"
+    ],
+    "properties": {
+        "$schema": {
+            "type": "string"
+        },
+        "templates": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "layouts": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "reminder_schedules": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "title",
+                "delays",
+                "create_title",
+                "create_description",
+                "edit_title",
+                "edit_description",
+                "delete"
+            ],
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "delays": {
+                    "type": "string"
+                },
+                "create_title": {
+                    "type": "string"
+                },
+                "create_description": {
+                    "type": "string"
+                },
+                "edit_title": {
+                    "type": "string"
+                },
+                "edit_description": {
+                    "type": "string"
+                },
+                "delete": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "confirmation",
+                        "successToast"
+                    ],
+                    "properties": {
+                        "confirmation": {
+                            "type": "string"
+                        },
+                        "successToast": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "validate_schedules": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "title",
+                "error_title",
+                "all_valid",
+                "missing_data",
+                "validating",
+                "validate_button",
+                "unknown_template",
+                "missing_variables",
+                "view_provided_data"
+            ],
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "error_title": {
+                    "type": "string"
+                },
+                "all_valid": {
+                    "type": "string"
+                },
+                "missing_data": {
+                    "type": "string"
+                },
+                "validating": {
+                    "type": "string"
+                },
+                "validate_button": {
+                    "type": "string"
+                },
+                "unknown_template": {
+                    "type": "string"
+                },
+                "missing_variables": {
+                    "type": "string"
+                },
+                "view_provided_data": {
+                    "type": "string"
+                }
+            }
+        },
+        "fields": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "unit",
+                "template",
+                "layout"
+            ],
+            "properties": {
+                "unit": {
+                    "type": "string"
+                },
+                "template": {
+                    "type": "string"
+                },
+                "layout": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

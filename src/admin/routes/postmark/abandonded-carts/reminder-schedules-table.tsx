@@ -91,7 +91,7 @@ const useColumns = () => {
   const columns = useMemo(
     () => [
       columnHelper.accessor("template.Name", {
-        header: t("templates.name"),
+        header: t("fields.template"),
       }),
       columnHelper.accessor("delays_iso", {
         header: t("reminder_schedules.delays"),
@@ -103,12 +103,12 @@ const useColumns = () => {
         }
       }),
       columnHelper.accessor("enabled", {
-        header: t("reminder_schedules.enabled"),
+        header: t("fields.status"),
         cell: ({ getValue }) => {
           const enabled = getValue()
           return (
             <Badge color={enabled ? "green" : "grey"} size="xsmall">
-              {enabled ? t("reminder_schedules.enabled") : t("reminder_schedules.disabled")}
+              {enabled ? t("statuses.enabled") : t("statuses.disabled")}
             </Badge>
           )
         },

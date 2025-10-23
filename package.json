@@ -70,7 +70,8 @@
       "@medusajs/icons": "^2.10.3",
       "@medusajs/medusa": "^2.10.3",
       "@medusajs/test-utils": "^2.10.3",
-      "@medusajs/ui": "^4.0.24"
+      "@medusajs/ui": "^4.0.24",
+      "react-i18next": "*"
    },
    "dependencies": {
       "@formatjs/intl-durationformat": "^0.7.6",
