@@ -9,6 +9,8 @@
     "reminder_schedules": {
         "title": "Promemoria",
         "delays": "Ritardi",
+        "notify_existing": "Notifica Carrelli Esistenti",
+        "notify_existing_hint": "Quando disabilitato, solo i carrelli creati dopo l'ultimo aggiornamento del promemoria riceveranno notifiche",
         "create_title": "Crea promemoria",
         "create_description": "Crea un nuovo promemoria per i carrelli abbandonati",
         "edit_title": "Modifica promemoria",

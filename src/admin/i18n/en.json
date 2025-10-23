@@ -9,6 +9,8 @@
     "reminder_schedules": {
         "title": "Reminder Schedules",
         "delays": "Delays",
+        "notify_existing": "Notify Existing Carts",
+        "notify_existing_hint": "When disabled, only carts created after the last schedule update will receive notifications",
         "create_title": "Create schedule",
         "create_description": "Create a new reminder schedule for abandoned carts",
         "edit_title": "Edit schedule",

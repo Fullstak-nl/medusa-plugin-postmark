@@ -23,7 +23,8 @@ export default defineMiddlewares({
                         "id",
                         "template_id",
                         "delays_iso",
-                        "enabled"
+                        "enabled",
+                        "notify_existing"
                     ],
                     isList: true,
                 }),
@@ -45,7 +46,8 @@ export default defineMiddlewares({
                         "id",
                         "template_id",
                         "delays_iso",
-                        "enabled"
+                        "enabled",
+                        "notify_existing"
                     ],
                     isList: false,
                 }),

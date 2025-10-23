@@ -121,6 +121,17 @@ const useColumns = () => {
           )
         },
       }),
+      columnHelper.accessor("notify_existing", {
+        header: t("reminder_schedules.notify_existing"),
+        cell: ({ getValue }) => {
+          const notifyExisting = getValue()
+          return (
+            <Badge color={notifyExisting ? "green" : "grey"} size="xsmall">
+              {notifyExisting ? t("filters.radio.yes") : t("filters.radio.no")}
+            </Badge>
+          )
+        },
+      }),
       columnHelper.action({
         actions: [
           {

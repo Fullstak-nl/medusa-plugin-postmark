@@ -38,6 +38,7 @@ export const fetchAbandonedCarts = createStep(
                 "items.*",
                 "metadata",
                 "updated_at",
+                "created_at",
                 "customer.*",
             ],
             filters: {
@@ -61,6 +62,17 @@ export const fetchAbandonedCarts = createStep(
             const lastNotificationDelay = (new Date(cart.metadata?.abandoned_notification as string || 0).getTime() - mostRecentLineItemUpdate) / 1000 / 3600
 
             for (const reminder of reminders.toReversed()) {
+                // Check if notify_existing is false and cart was created before the schedule's last update
+                if (!reminder.schedule.notify_existing && reminder.schedule.updated_at) {
+                    const cartCreatedAt = new Date(cart.created_at!).getTime()
+                    const scheduleUpdatedAt = new Date(reminder.schedule.updated_at).getTime()
+                    
+                    // Skip this cart if it was created before the schedule was last updated
+                    if (cartCreatedAt < scheduleUpdatedAt) {
+                        continue
+                    }
+                }
+
                 if (elapsed >= reminder.delay && reminder.delay > lastNotificationDelay) {
                     return reminder
                 }

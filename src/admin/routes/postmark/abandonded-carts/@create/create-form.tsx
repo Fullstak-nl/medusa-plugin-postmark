@@ -29,6 +29,7 @@ export const CreateReminderScheduleForm = () => {
         resolver: zodResolver(CreateReminderScheduleSchema),
         defaultValues: {
             enabled: false,
+            notify_existing: false,
         },
     })
 
@@ -142,6 +143,33 @@ export const CreateReminderScheduleForm = () => {
                                                 {t("statuses.enabled")}
                                             </Form.Label>
                                         </div>
+                                        <Form.ErrorMessage />
+                                    </Form.Item>
+                                )
+                            }}
+                        />
+
+                        <Form.Field
+                            control={form.control}
+                            name="notify_existing"
+                            render={({ field: { value, onChange, ...field } }) => {
+                                return (
+                                    <Form.Item>
+                                        <div className="flex items-center space-x-2">
+                                            <Form.Control>
+                                                <Switch
+                                                    {...field}
+                                                    checked={value}
+                                                    onCheckedChange={onChange}
+                                                />
+                                            </Form.Control>
+                                            <Form.Label className="!mt-0">
+                                                {t("reminder_schedules.notify_existing")}
+                                            </Form.Label>
+                                        </div>
+                                        <Form.Hint>
+                                            {t("reminder_schedules.notify_existing_hint")}
+                                        </Form.Hint>
                                         <Form.ErrorMessage />
                                     </Form.Item>
                                 )
