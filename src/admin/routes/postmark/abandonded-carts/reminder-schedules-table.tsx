@@ -102,7 +102,7 @@ const useColumns = () => {
           return (
             <div className="flex flex-wrap gap-1">
               {delays_iso.sort().map((duration, index) => (
-                <Badge key={index} size="small" color="blue">
+                <Badge key={index} size="small" color="grey">
                   {formatter.format(Temporal.Duration.from(duration))}
                 </Badge>
               ))}
@@ -126,7 +126,7 @@ const useColumns = () => {
         cell: ({ getValue }) => {
           const notifyExisting = getValue()
           return (
-            <Badge color={notifyExisting ? "green" : "grey"} size="xsmall">
+            <Badge color={notifyExisting ? "orange" : "grey"} size="xsmall">
               {notifyExisting ? t("filters.radio.yes") : t("filters.radio.no")}
             </Badge>
           )
