@@ -7,7 +7,7 @@ import { DataTableAction } from "../../components/data-table-action"
 import { useTranslation } from "react-i18next"
 
 const PostmarkPage = () => {
-  const { t } = useTranslation()
+  const { t } = useTranslation("postmark")
   const { options: { server_id: serverId } = {} } = usePostmarkOptions()
   const templatesTable = usePostmarkDataTable({ type: "template", serverId })
   const layoutsTable = usePostmarkDataTable({ type: "layout", serverId })
@@ -19,17 +19,25 @@ const PostmarkPage = () => {
     ? `https://account.postmarkapp.com/servers/${serverId}/templates/starter/new-${activeTab}`
     : "#"
 
+  const paginationTranslations = {
+    of: t("general.of"),
+    results: t("general.results"),
+    pages: t("general.pages"),
+    prev: t("general.prev"),
+    next: t("general.next"),
+  }
+
   return (
     <Container className="p-0">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <DataTable instance={currentTable.table}>
           <DataTable.Toolbar>
             <Tabs.List>
-              <Tabs.Trigger value="template">Templates</Tabs.Trigger>
-              <Tabs.Trigger value="layout">Layouts</Tabs.Trigger>
+              <Tabs.Trigger value="template">{t("templates.title")}</Tabs.Trigger>
+              <Tabs.Trigger value="layout">{t("layouts.title")}</Tabs.Trigger>
             </Tabs.List>
             <div className="flex gap-2 ml-auto">
-              <DataTable.Search placeholder={activeTab === "template" ? "Jump to a template" : "Jump to a layout"} />
+              <DataTable.Search placeholder={activeTab === "template" ? t("templates.jump_to_template") : t("layouts.jump_to_layout")} />
               <DataTableAction
                 label={t("actions.create")}
                 onClick={() => window.open(createUrl, "_blank")}
@@ -37,7 +45,7 @@ const PostmarkPage = () => {
             </div>
           </DataTable.Toolbar>
           <DataTable.Table />
-          <DataTable.Pagination />
+          <DataTable.Pagination translations={paginationTranslations}/>
         </DataTable>
       </Tabs>
     </Container>

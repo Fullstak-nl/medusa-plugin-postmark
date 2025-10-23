@@ -13,7 +13,7 @@ import { useRouteModal } from "../../../../../components/modals/route-modal-prov
 import { RouteDrawer } from "../../../../../components/modals/route-drawer"
 import { ReminderSchedule, UpdateReminderSchedule, UpdateReminderScheduleSchema } from "../../../../../../types/reminder-schedules"
 import { useUpdateReminderSchedules } from "../../../../../hooks/use-reminder-schedules"
-import { ChipInput } from "../../../../../components/general/chip-input"
+import { DurationInput } from "../../../../../components/general/duration-input"
 import { useComboboxData } from "../../../../../hooks/use-combobox-data"
 import { sdk } from "../../../../../lib/sdk"
 import { Combobox } from "../../../../../components/general/combobox"
@@ -22,7 +22,7 @@ const isFetchError = (error: any): error is FetchError => {
 }
 
 export const EditReminderScheduleForm = ({ schedule }: { schedule: ReminderSchedule }) => {
-    const { t } = useTranslation()
+    const { t } = useTranslation("postmark")
     const { handleSuccess } = useRouteModal()
 
     const form = useForm<UpdateReminderSchedule>({
@@ -83,7 +83,7 @@ export const EditReminderScheduleForm = ({ schedule }: { schedule: ReminderSched
                                 return (
                                     <Form.Item>
                                         <Form.Label>
-                                            Template
+                                            {t("fields.template")}
                                         </Form.Label>
                                         <Form.Control>
                                             <Combobox
@@ -109,17 +109,13 @@ export const EditReminderScheduleForm = ({ schedule }: { schedule: ReminderSched
                                 return (
                                     <Form.Item>
                                         <Form.Label>
-                                            Delays (ISO 8601 duration)
+                                            {t("reminder_schedules.delays")}
                                         </Form.Label>
                                         <Form.Control>
-                                            <ChipInput
+                                            <DurationInput
                                                 {...field}
-                                                placeholder="PT1H, PT24H, P1D"
                                             />
                                         </Form.Control>
-                                        <Form.Hint>
-                                            Enter ISO 8601 durations (e.g., PT1H for 1 hour, PT24H or P1D for 1 day)
-                                        </Form.Hint>
                                         <Form.ErrorMessage />
                                     </Form.Item>
                                 )
@@ -141,7 +137,7 @@ export const EditReminderScheduleForm = ({ schedule }: { schedule: ReminderSched
                                                 />
                                             </Form.Control>
                                             <Form.Label className="!mt-0">
-                                                Enabled
+                                                {t("fields.enabled")}
                                             </Form.Label>
                                         </div>
                                         <Form.ErrorMessage />

@@ -1,16 +1,18 @@
 import { Heading } from "@medusajs/ui"
 import { RouteDrawer } from "../../../../components/modals/route-drawer"
 import { CreateReminderScheduleForm } from "./create-form"
+import { useTranslation } from "react-i18next"
 
 const CreateAbandonedCartPage = () => {
+    const { t } = useTranslation("postmark")
     return (
         <RouteDrawer>
             <RouteDrawer.Header>
                 <RouteDrawer.Title asChild>
-                    <Heading>Create schedule</Heading>
+                    <Heading>{t("reminder_schedules.create_title")}</Heading>
                 </RouteDrawer.Title>
                 <RouteDrawer.Description className="sr-only">
-                    Create a new reminder schedule for abandoned carts
+                    {t("reminder_schedules.create_description")}
                 </RouteDrawer.Description>
             </RouteDrawer.Header>
             <CreateReminderScheduleForm />

@@ -1,12 +1,23 @@
 {
     "templates": {
-        "name": "Template"
+        "name": "Template",
+        "title": "Templates",
+        "postmark_templates": "Postmark Templates",
+        "jump_to_template": "Jump to a template"
+    },
+    "layouts": {
+        "title": "Layouts",
+        "jump_to_layout": "Jump to a layout"
     },
     "reminder_schedules": {
         "title": "Reminder Schedules",
         "delays": "Delays",
         "enabled": "Enabled",
         "disabled": "Disabled",
+        "create_title": "Create schedule",
+        "create_description": "Create a new reminder schedule for abandoned carts",
+        "edit_title": "Edit schedule",
+        "edit_description": "Edit the reminder schedule for abandoned carts",
         "delete": {
             "confirmation": "You are about to delete a reminder schedule. This action cannot be undone.",
             "successToast": "Reminder schedule was successfully deleted."
@@ -22,5 +33,10 @@
         "unknown_template": "Unknown Template",
         "missing_variables": "Missing Variables",
         "view_provided_data": "View Provided Data"
+    },
+    "fields": {
+        "unit": "Unit",
+        "template": "Template",
+        "enabled": "Enabled"
     }
 }

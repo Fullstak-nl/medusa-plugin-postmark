@@ -1,12 +1,23 @@
 {
     "templates": {
-        "name": "Template"
+        "name": "Template",
+        "title": "Template",
+        "postmark_templates": "Template Postmark",
+        "jump_to_template": "Vai a un template"
+    },
+    "layouts": {
+        "title": "Layout",
+        "jump_to_layout": "Vai a un layout"
     },
     "reminder_schedules": {
         "title": "Promemoria",
         "delays": "Ritardi",
         "enabled": "Abilitato",
         "disabled": "Disabilitato",
+        "create_title": "Crea promemoria",
+        "create_description": "Crea un nuovo promemoria per i carrelli abbandonati",
+        "edit_title": "Modifica promemoria",
+        "edit_description": "Modifica il promemoria per i carrelli abbandonati",
         "delete": {
             "confirmation": "Stai per eliminare un promemoria. Questa azione non può essere annullata.",
             "successToast": "Il promemoria è stato eliminato con successo."
@@ -22,5 +33,10 @@
         "unknown_template": "Template Sconosciuto",
         "missing_variables": "Variabili Mancanti",
         "view_provided_data": "Visualizza Dati Forniti"
+    },
+    "fields": {
+        "unit": "Unità",
+        "template": "Template",
+        "enabled": "Abilitato"
     }
 }
