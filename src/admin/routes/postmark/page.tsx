@@ -53,7 +53,8 @@ const PostmarkPage = () => {
 }
 
 export const config = defineRouteConfig({
-  label: "Postmark Templates",
+  label: "Postmark Templates" // "menuLabels.postmark_templates",
+  //translationNs: "postmark",
 })
 
 export default PostmarkPage

@@ -158,6 +158,22 @@
                     "type": "string"
                 }
             }
+        },
+        "menuLabels": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "abandoned_carts",
+                "postmark_templates"
+            ],
+            "properties": {
+                "abandoned_carts": {
+                    "type": "string"
+                },
+                "postmark_templates": {
+                    "type": "string"
+                }
+            }
         }
     }
 }

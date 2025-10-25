@@ -17,5 +17,6 @@ const AbandonedCartsPage = () => {
 export default AbandonedCartsPage
 
 export const config = defineRouteConfig({
-  label: "Abandoned Carts",
+  label: "Abandoned Carts" // "menuLabels.abandoned_carts",
+  // translationNs: "postmark",
 })

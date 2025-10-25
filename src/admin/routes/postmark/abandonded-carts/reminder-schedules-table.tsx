@@ -7,7 +7,6 @@ import {
   useDataTable,
   usePrompt,
 } from "@medusajs/ui"
-import { useLocale } from "react-aria"
 import { useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import { PencilSquare, Trash } from "@medusajs/icons"
@@ -54,11 +53,10 @@ export default ReminderSchedulesTable
 const columnHelper = createDataTableColumnHelper<ReminderSchedule>()
 
 const useColumns = () => {
-  const { t } = useTranslation("postmark")
-  const { locale } = useLocale()
+  const { t, i18n: { language } } = useTranslation("postmark")
   const formatter = useMemo(() => {
-    return new DurationFormat(locale, { style: 'long' })
-  }, [locale])
+    return new DurationFormat(language, { style: 'long' })
+  }, [language])
   const navigate = useNavigate()
   const prompt = usePrompt()
 

@@ -40,13 +40,13 @@
       "test:unit": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --forceExit"
    },
    "devDependencies": {
-      "@medusajs/admin-sdk": "2.11.0",
-      "@medusajs/cli": "2.11.0",
-      "@medusajs/framework": "2.11.0",
-      "@medusajs/icons": "2.11.0",
-      "@medusajs/medusa": "2.11.0",
-      "@medusajs/test-utils": "2.11.0",
-      "@medusajs/ui": "4.0.24",
+      "@medusajs/admin-sdk": "2.11.1",
+      "@medusajs/cli": "2.11.1",
+      "@medusajs/framework": "2.11.1",
+      "@medusajs/icons": "2.11.1",
+      "@medusajs/medusa": "2.11.1",
+      "@medusajs/test-utils": "2.11.1",
+      "@medusajs/ui": "4.0.25",
       "@swc/core": "1.5.7",
       "@swc/jest": "^0.2.36",
       "@types/jest": "^29.5.13",
@@ -64,13 +64,13 @@
       "yalc": "^1.0.0-pre.53"
    },
    "peerDependencies": {
-      "@medusajs/admin-sdk": "^2.10.3",
-      "@medusajs/cli": "^2.10.3",
-      "@medusajs/framework": "^2.10.3",
-      "@medusajs/icons": "^2.10.3",
-      "@medusajs/medusa": "^2.10.3",
-      "@medusajs/test-utils": "^2.10.3",
-      "@medusajs/ui": "^4.0.24",
+      "@medusajs/admin-sdk": "^2.11.1",
+      "@medusajs/cli": "^2.11.1",
+      "@medusajs/framework": "^2.11.1",
+      "@medusajs/icons": "^2.11.1",
+      "@medusajs/medusa": "^2.11.1",
+      "@medusajs/test-utils": "^2.11.1",
+      "@medusajs/ui": "^4.0.25",
       "react-i18next": "*"
    },
    "dependencies": {

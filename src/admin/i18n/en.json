@@ -35,5 +35,9 @@
         "unit": "Unit",
         "template": "Template",
         "layout": "Layout"
+    },
+    "menuLabels": {
+        "abandoned_carts": "Abandoned Carts",
+        "postmark_templates": "Postmark Templates"
     }
 }

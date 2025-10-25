@@ -35,5 +35,9 @@
         "unit": "Unità",
         "template": "Template",
         "layout": "Layout"
+    },
+    "menuLabels": {
+        "abandoned_carts": "Carrelli Abbandonati",
+        "postmark_templates": "Template Postmark"
     }
 }
