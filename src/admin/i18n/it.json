@@ -11,6 +11,8 @@
         "delays": "Ritardi",
         "notify_existing": "Notifica Carrelli Esistenti",
         "notify_existing_hint": "Quando disabilitato, solo i carrelli creati dopo l'ultimo aggiornamento del promemoria riceveranno notifiche",
+        "reset_on_cart_update": "Riavvia al Aggiornamento Carrello",
+        "reset_on_cart_update_hint": "Quando abilitato, il ciclo di notifiche si riavvia se un carrello viene aggiornato. Quando disabilitato, le notifiche continuano dal momento originale di abbandono indipendentemente dagli aggiornamenti del carrello.",
         "create_title": "Crea promemoria",
         "create_description": "Crea un nuovo promemoria per i carrelli abbandonati",
         "edit_title": "Modifica promemoria",

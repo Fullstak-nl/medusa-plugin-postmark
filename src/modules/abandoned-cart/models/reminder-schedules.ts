@@ -6,6 +6,7 @@ const ReminderSchedule = model.define("reminder_schedule", {
   template_id: model.text().unique(),
   delays_iso: model.array(),
   notify_existing: model.boolean().default(false),
+  reset_on_cart_update: model.boolean().default(true),
 })
 
 export default ReminderSchedule

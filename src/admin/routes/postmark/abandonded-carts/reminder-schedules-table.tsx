@@ -130,6 +130,17 @@ const useColumns = () => {
           )
         },
       }),
+      columnHelper.accessor("reset_on_cart_update", {
+        header: t("reminder_schedules.reset_on_cart_update"),
+        cell: ({ getValue }) => {
+          const resetOnUpdate = getValue()
+          return (
+            <Badge color={resetOnUpdate ? "blue" : "grey"} size="xsmall">
+              {resetOnUpdate ? t("filters.radio.yes") : t("filters.radio.no")}
+            </Badge>
+          )
+        },
+      }),
       columnHelper.action({
         actions: [
           {

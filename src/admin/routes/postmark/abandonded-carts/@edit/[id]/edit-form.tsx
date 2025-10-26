@@ -172,6 +172,33 @@ export const EditReminderScheduleForm = ({ schedule }: { schedule: ReminderSched
                                 )
                             }}
                         />
+
+                        <Form.Field
+                            control={form.control}
+                            name="reset_on_cart_update"
+                            render={({ field: { value, onChange, ...field } }) => {
+                                return (
+                                    <Form.Item>
+                                        <div className="flex items-center space-x-2">
+                                            <Form.Control>
+                                                <Switch
+                                                    {...field}
+                                                    checked={value}
+                                                    onCheckedChange={onChange}
+                                                />
+                                            </Form.Control>
+                                            <Form.Label className="!mt-0">
+                                                {t("reminder_schedules.reset_on_cart_update")}
+                                            </Form.Label>
+                                        </div>
+                                        <Form.Hint>
+                                            {t("reminder_schedules.reset_on_cart_update_hint")}
+                                        </Form.Hint>
+                                        <Form.ErrorMessage />
+                                    </Form.Item>
+                                )
+                            }}
+                        />
                     </div>
                 </RouteDrawer.Body>
                 <RouteDrawer.Footer>

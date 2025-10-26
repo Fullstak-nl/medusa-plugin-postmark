@@ -46,6 +46,8 @@
                 "delays",
                 "notify_existing",
                 "notify_existing_hint",
+                "reset_on_cart_update",
+                "reset_on_cart_update_hint",
                 "create_title",
                 "create_description",
                 "edit_title",
@@ -63,6 +65,12 @@
                     "type": "string"
                 },
                 "notify_existing_hint": {
+                    "type": "string"
+                },
+                "reset_on_cart_update": {
+                    "type": "string"
+                },
+                "reset_on_cart_update_hint": {
                     "type": "string"
                 },
                 "create_title": {

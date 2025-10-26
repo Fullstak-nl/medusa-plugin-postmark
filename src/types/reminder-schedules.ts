@@ -12,6 +12,7 @@ export interface ReminderSchedule {
     template?: PostmarkTemplate
     delays_iso: string[] // ISO 8601 duration strings (e.g., "PT1H", "PT24H", "P1D")
     notify_existing: boolean // Whether to notify for carts created before the last schedule update
+    reset_on_cart_update: boolean // Whether to restart delay cycle when cart is updated
     created_at?: Date
     updated_at?: Date
     deleted_at?: Date | null
@@ -26,6 +27,7 @@ export interface CreateReminderScheduleRequest {
     template_id: string
     delays_iso: string[] // ISO 8601 duration strings
     notify_existing: boolean // Whether to notify for carts created before the last schedule update
+    reset_on_cart_update: boolean // Whether to restart delay cycle when cart is updated
 }
 
 /**
@@ -36,6 +38,7 @@ export interface UpdateReminderScheduleRequest {
     template_id?: string
     delays_iso?: string[] // ISO 8601 duration strings
     notify_existing?: boolean // Whether to notify for carts created before the last schedule update
+    reset_on_cart_update?: boolean // Whether to restart delay cycle when cart is updated
 }
 
 /**
@@ -61,7 +64,8 @@ export const CreateReminderScheduleSchema = z.object({
     delays_iso: z.array(
         z.string().duration()
     ).nonempty(),
-    notify_existing: z.boolean().default(false)
+    notify_existing: z.boolean().default(false),
+    reset_on_cart_update: z.boolean().default(true)
 })
 
 /**
@@ -73,7 +77,8 @@ export const UpdateReminderScheduleSchema = z.object({
     delays_iso: z.array(
         z.string().duration()
     ).nonempty().optional(),
-    notify_existing: z.boolean().optional()
+    notify_existing: z.boolean().optional(),
+    reset_on_cart_update: z.boolean().optional()
 })
 
 /**

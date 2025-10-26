@@ -8,9 +8,10 @@ import zod from "zod"
 import { defaultAbandonedCartData } from "./steps/default-hooks/abandoned-cart"
 import { CartDTO, CreateNotificationDTO, CustomerDTO } from "@medusajs/framework/types"
 import { ReminderSchedule } from "../types/reminder-schedules"
+import { Temporal } from "temporal-polyfill"
 
 export type NotificationDataWorkflowInput = {
-    carts: Array<[{ delay: number, template: string, schedule: ReminderSchedule }, (CartDTO & { customer: CustomerDTO })[]]>
+    carts: Array<{ cart: CartDTO & { customer: CustomerDTO }, reminders: Array<{ delay: Temporal.Duration, delayIso: string, template: string, schedule: ReminderSchedule }> }>
 }
 
 export const notificationDataWorkflow = createWorkflow(

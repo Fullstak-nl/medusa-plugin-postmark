@@ -2,93 +2,217 @@ import { createStep, StepResponse } from "@medusajs/framework/workflows-sdk"
 import { ReminderSchedule } from "../../types/reminder-schedules"
 import { CartDTO, CustomerDTO } from "@medusajs/framework/types"
 import { Temporal } from "temporal-polyfill"
+import {
+  computeCartReferenceTimestamp,
+  getSentNotification,
+} from "../../types/abandoned-cart-tracking"
 
 type FetchAbandonedCartsStepInput = {
-    reminderSchedules: Array<ReminderSchedule>
-    pagination: { limit: number, offset: number }
+  reminderSchedules: Array<ReminderSchedule>
+  pagination: { limit: number, offset: number }
+}
+
+/**
+ * Represents a reminder with computed delay
+ */
+interface ProcessedReminder {
+  delay: Temporal.Duration
+  delayIso: string // original ISO duration
+  template: string
+  schedule: ReminderSchedule
+}
+
+/**
+ * Check if a cart should receive a specific reminder
+ */
+function shouldSendReminder(
+  cart: CartDTO,
+  reminder: ProcessedReminder,
+  currentReferenceInstant: Temporal.Instant,
+  now: Temporal.Instant
+): boolean {
+  const { schedule, delayIso, delay } = reminder
+
+  // Calculate time elapsed since cart's reference timestamp
+  const elapsed = now.since(currentReferenceInstant)
+
+  // Check if enough time has passed for this delay
+  if (Temporal.Duration.compare(elapsed, delay) < 0) {
+    return false
+  }
+
+  // Check if this notification was already sent
+  const sentNotification = getSentNotification(cart, schedule.id, delayIso)
+
+  if (!sentNotification) {
+    // Never sent before - this could be a newly added delay
+
+    // Prevent sending a notification for a smaller delay if a bigger one was already sent for the same schedule
+    // Find all sent notifications for this schedule
+    const tracking = (typeof cart.metadata?.abandoned_cart_tracking === 'object' && cart.metadata?.abandoned_cart_tracking !== null)
+      ? ((cart.metadata.abandoned_cart_tracking as any).sent_notifications || {})
+      : {}
+    const schedulePrefix = `${schedule.id}:`
+    let biggerDelaySent = false
+    for (const key of Object.keys(tracking)) {
+      if (key.startsWith(schedulePrefix)) {
+        const sentDelayIso = key.slice(schedulePrefix.length)
+        try {
+          const sentDelay = Temporal.Duration.from(sentDelayIso)
+          if (Temporal.Duration.compare(sentDelay, delay) > 0) {
+            biggerDelaySent = true
+            break
+          }
+        } catch { }
+      }
+    }
+    if (biggerDelaySent) {
+      return false
+    }
+
+    if (schedule.updated_at) {
+      const scheduleUpdatedInstant = Temporal.Instant.from(new Date(schedule.updated_at).toISOString())
+      const cartCreatedInstant = Temporal.Instant.from(new Date(cart.created_at!).toISOString())
+
+      // If notify_existing is false, only carts created after schedule update are eligible
+      if (!schedule.notify_existing) {
+        if (Temporal.Instant.compare(cartCreatedInstant, scheduleUpdatedInstant) < 0) {
+          return false
+        }
+        // For newly added delays: cart reference must also be after schedule update
+        if (Temporal.Instant.compare(currentReferenceInstant, scheduleUpdatedInstant) < 0) {
+          return false
+        }
+      } else {
+        // If notify_existing is true, allow carts created before schedule update
+        // But for newly added delays, only allow if the delay existed at the time the cart became eligible
+        // So, skip the reference check for notify_existing=true
+      }
+    }
+    return true
+  }
+
+  // Already sent once - check reset_on_cart_update behavior
+  if (schedule.reset_on_cart_update) {
+    // Reset mode: resend if cart was updated after last send
+    const cartReferenceAtSendInstant = Temporal.Instant.from(sentNotification.cart_reference_at_send)
+    const cartChangedSinceLastSend = Temporal.Instant.compare(
+      currentReferenceInstant,
+      cartReferenceAtSendInstant
+    ) > 0
+
+    if (cartChangedSinceLastSend) {
+      // Cart was updated, check if enough time has passed since the update
+      return Temporal.Duration.compare(elapsed, delay) >= 0
+    }
+  }
+
+  // Either reset is disabled or cart hasn't changed - don't resend
+  return false
 }
 
 export const fetchAbandonedCarts = createStep(
-    "fetch-abandoned-carts",
-    async ({ reminderSchedules, pagination }: FetchAbandonedCartsStepInput, { container }) => {
-        const query = container.resolve("query")
+  "fetch-abandoned-carts",
+  async ({ reminderSchedules, pagination }: FetchAbandonedCartsStepInput, { container }) => {
+    const query = container.resolve("query")
 
-        // Transform reminder schedules into a flat array of reminders with delay and template
-        const reminders = reminderSchedules.flatMap(schedule =>
-            schedule.delays_iso.map(duration => ({
-                delay: Temporal.Duration.from(duration).total({ unit: "hours", relativeTo: Temporal.Now.plainDateISO() }),
-                template: schedule.template_id,
-                schedule: schedule
-            }))
-        ).sort((a, b) => a.delay - b.delay)
+    // Filter out disabled schedules
+    const enabledSchedules = reminderSchedules.filter(s => s.enabled !== false)
+    // Transform enabled reminder schedules into a flat array of reminders with delay and template
+    const reminders: ProcessedReminder[] = enabledSchedules.flatMap(schedule =>
+      schedule.delays_iso.map(delayIso => ({
+        delay: Temporal.Duration.from(delayIso),
+        delayIso,
+        template: schedule.template_id,
+        schedule: schedule
+      }))
+    ).sort((a, b) => Temporal.Duration.compare(a.delay, b.delay))
 
-        if (!reminders.length) {
-            return new StepResponse({ carts: [], totalCount: 0 })
-        }
-
-        const closestValidRemiderDate = new Date(Date.now() - reminders[0].delay * 60 * 60 * 1000)
-        const {
-            data: abandonedCarts,
-            metadata,
-        } = await query.graph({
-            entity: "cart",
-            fields: [
-                "id",
-                "email",
-                "items.*",
-                "metadata",
-                "updated_at",
-                "created_at",
-                "customer.*",
-            ],
-            filters: {
-                email: {
-                    $ne: null,
-                },
-                completed_at: null,
-            },
-            pagination: {
-                skip: pagination.offset,
-                take: pagination.limit,
-            },
-        })
-
-        const cartsWithItems = abandonedCarts.filter((cart) => cart.items?.length > 0 &&
-            cart.items.map((item) => new Date(item!.updated_at)).sort((a, b) => b.getTime() - a.getTime())[0] < closestValidRemiderDate)
-
-        const groupedCarts = Map.groupBy(cartsWithItems, (cart) => {
-            const mostRecentLineItemUpdate = cart.items.map((item) => new Date(item!.updated_at).getTime()).sort((a, b) => b - a)[0]
-            const elapsed = (Date.now() - mostRecentLineItemUpdate) / 1000 / 3600
-            const lastNotificationDelay = (new Date(cart.metadata?.abandoned_notification as string || 0).getTime() - mostRecentLineItemUpdate) / 1000 / 3600
-
-            for (const reminder of reminders.toReversed()) {
-                // Check if notify_existing is false and cart was created before the schedule's last update
-                if (!reminder.schedule.notify_existing && reminder.schedule.updated_at) {
-                    const cartCreatedAt = new Date(cart.created_at!).getTime()
-                    const scheduleUpdatedAt = new Date(reminder.schedule.updated_at).getTime()
-                    
-                    // Skip this cart if it was created before the schedule was last updated
-                    if (cartCreatedAt < scheduleUpdatedAt) {
-                        continue
-                    }
-                }
-
-                if (elapsed >= reminder.delay && reminder.delay > lastNotificationDelay) {
-                    return reminder
-                }
-            }
-
-            return "no-reminder"
-        })
-
-        if (groupedCarts.has("no-reminder")) {
-            groupedCarts.delete("no-reminder")
-        }
-
-        const totalCount = metadata?.count ?? 0
-        return new StepResponse({
-            carts: Array.from(groupedCarts.entries() as unknown as Map<{ delay: number, template: string, schedule: ReminderSchedule }, (CartDTO & { customer: CustomerDTO })[]>),
-            totalCount
-        })
+    if (!reminders.length) {
+      return new StepResponse({ carts: [], totalCount: 0 })
     }
+
+    // Use the shortest delay to filter carts - we need carts old enough for at least one delay
+    const shortestDelay = reminders[0].delay
+    const now = Temporal.Now.instant()
+    const cutoffInstant = now.subtract(shortestDelay)
+
+    const {
+      data: abandonedCarts,
+      metadata,
+    } = await query.graph({
+      entity: "cart",
+      fields: [
+        "id",
+        "email",
+        "items.*",
+        "metadata",
+        "updated_at",
+        "created_at",
+        "customer.*",
+      ],
+      filters: {
+        email: {
+          $ne: null,
+        },
+        completed_at: null,
+      },
+      pagination: {
+        skip: pagination.offset,
+        take: pagination.limit,
+      },
+    })
+
+    // Build an array of { cart, reminders: ProcessedReminder[] } for all eligible reminders for each cart
+    const eligible: Array<{ cart: CartDTO & { customer: CustomerDTO }, reminders: ProcessedReminder[] }> = []
+
+    for (const cart of abandonedCarts) {
+      // Skip carts without items
+      if (!cart.items?.length) {
+        continue
+      }
+
+      // Compute the cart's reference timestamp (most recent update)
+      const currentReferenceTimestamp = computeCartReferenceTimestamp(cart as unknown as CartDTO)
+      const currentReferenceInstant = Temporal.Instant.fromEpochMilliseconds(currentReferenceTimestamp)
+
+      // Check if cart is old enough for any reminder
+      if (Temporal.Instant.compare(currentReferenceInstant, cutoffInstant) > 0) {
+        continue
+      }
+
+      // For each reminder, check eligibility
+      const eligibleReminders: ProcessedReminder[] = []
+      // Group reminders by schedule to select one per schedule
+      const remindersBySchedule = new Map<string, ProcessedReminder[]>()
+      for (const reminder of reminders) {
+        const scheduleId = reminder.schedule.id
+        if (!remindersBySchedule.has(scheduleId)) {
+          remindersBySchedule.set(scheduleId, [])
+        }
+        remindersBySchedule.get(scheduleId)!.push(reminder)
+      }
+      for (const [scheduleId, scheduleReminders] of remindersBySchedule) {
+        let selectedReminder: ProcessedReminder | null = null
+        for (const reminder of scheduleReminders.toReversed()) {
+          if (shouldSendReminder(cart as unknown as CartDTO, reminder, currentReferenceInstant, now)) {
+            selectedReminder = reminder
+            break
+          }
+        }
+        if (selectedReminder) {
+          eligibleReminders.push(selectedReminder)
+        }
+      }
+      if (eligibleReminders.length > 0) {
+        eligible.push({ cart: cart as unknown as CartDTO & { customer: CustomerDTO }, reminders: eligibleReminders })
+      }
+    }
+
+    const totalCount = metadata?.count ?? 0
+    return new StepResponse({
+      carts: eligible,
+      totalCount
+    })
+  }
 )
