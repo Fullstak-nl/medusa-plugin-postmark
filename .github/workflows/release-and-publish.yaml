@@ -78,13 +78,13 @@ jobs:
 
       - name: Publish to NPM
         run: |
-          if [[ "$VERSION" == *"beta"* ]]; then
+          if [[ "${{ steps.version-bump.outputs.version }}" == *"beta"* ]]; then
             echo "Publishing with dist-tag beta"
             yarn publish --tag beta
-          elif [[ "$VERSION" == *"alpha"* ]]; then
+          elif [[ "${{ steps.version-bump.outputs.version }}" == *"alpha"* ]]; then
             echo "Publishing with dist-tag alpha"
             yarn publish --tag alpha
-          elif [[ "$VERSION" == *"rc"* ]]; then
+          elif [[ "${{ steps.version-bump.outputs.version }}" == *"rc"* ]]; then
             echo "Publishing with dist-tag rc"
             yarn publish --tag rc 
           else
