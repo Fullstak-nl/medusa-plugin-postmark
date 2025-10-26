@@ -48,6 +48,8 @@
                 "notify_existing_hint",
                 "reset_on_cart_update",
                 "reset_on_cart_update_hint",
+                "notify_existing_warning_title",
+                "notify_existing_warning_desc",
                 "create_title",
                 "create_description",
                 "edit_title",
@@ -71,6 +73,12 @@
                     "type": "string"
                 },
                 "reset_on_cart_update_hint": {
+                    "type": "string"
+                },
+                "notify_existing_warning_title": {
+                    "type": "string"
+                },
+                "notify_existing_warning_desc": {
                     "type": "string"
                 },
                 "create_title": {

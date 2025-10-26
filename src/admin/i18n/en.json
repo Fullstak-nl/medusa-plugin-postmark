@@ -11,6 +11,8 @@
         "delays": "Delays",
         "notify_existing": "Notify Existing Carts",
         "notify_existing_hint": "When disabled, only carts created after the last schedule update will receive notifications",
+        "notify_existing_warning_title": "Notify all existing carts?",
+        "notify_existing_warning_desc": "Enabling this will notify a large number of existing abandoned carts. This action may result in a high volume of notifications being sent. Proceed carefully.",
         "reset_on_cart_update": "Reset on Cart Update",
         "reset_on_cart_update_hint": "When enabled, the notification cycle restarts if a cart is updated. When disabled, notifications continue from the original abandonment time regardless of cart updates.",
         "create_title": "Create schedule",

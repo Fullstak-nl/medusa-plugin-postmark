@@ -5,6 +5,7 @@ import {
     Switch,
 } from "@medusajs/ui"
 import { useForm } from "react-hook-form"
+import { usePrompt } from "@medusajs/ui"
 import { useTranslation } from "react-i18next"
 import { Form } from "../../../../components/form/form"
 import { KeyboundForm } from "../../../../components/modals/utilities/keybound-form"
@@ -23,6 +24,7 @@ const isFetchError = (error: any): error is FetchError => {
 
 export const CreateReminderScheduleForm = () => {
     const { t } = useTranslation("postmark")
+    const prompt = usePrompt()
     const { handleSuccess } = useRouteModal()
 
     const form = useForm<CreateReminderSchedule>({
@@ -154,6 +156,17 @@ export const CreateReminderScheduleForm = () => {
                             control={form.control}
                             name="notify_existing"
                             render={({ field: { value, onChange, ...field } }) => {
+                                const handleCheckedChange = async (checked: boolean) => {
+                                    if (checked) {
+                                        const confirmed = await prompt({
+                                            title: t("reminder_schedules.notify_existing_warning_title"),
+                                            description: t("reminder_schedules.notify_existing_warning_desc"),
+                                            variant: "confirmation",
+                                        })
+                                        if (!confirmed) return
+                                    }
+                                    onChange(checked)
+                                }
                                 return (
                                     <Form.Item>
                                         <div className="flex items-center space-x-2">
@@ -161,7 +174,7 @@ export const CreateReminderScheduleForm = () => {
                                                 <Switch
                                                     {...field}
                                                     checked={value}
-                                                    onCheckedChange={onChange}
+                                                    onCheckedChange={handleCheckedChange}
                                                 />
                                             </Form.Control>
                                             <Form.Label className="!mt-0">
