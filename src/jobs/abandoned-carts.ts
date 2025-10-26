@@ -19,7 +19,7 @@ export default async function abandonedCartJob(
     })
 
     if (!reminderSchedules?.length) {
-        logger.info("No enabled reminder schedules found")
+        logger.debug("medusa-plugin-postmark: No enabled reminder schedules found")
         return
     }
 
@@ -35,14 +35,14 @@ export default async function abandonedCartJob(
             totalCount = pagination.totalCount ?? 0
         } catch (error) {
             logger.error(
-                `Failed to send abandoned cart notification: ${error.message}`
+                `medusa-plugin-postmark: Failed to send abandoned cart notification: ${error.message}`
             )
         }
 
         offset += limit
     } while (offset < totalCount)
 
-    logger.info(`Sent ${abandonedCartsCount} abandoned cart notifications`)
+    logger.debug(`medusa-plugin-postmark: Sent ${abandonedCartsCount} abandoned cart notifications`)
 }
 
 export const config = {

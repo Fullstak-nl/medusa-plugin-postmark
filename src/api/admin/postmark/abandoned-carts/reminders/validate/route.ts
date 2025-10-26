@@ -85,7 +85,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse<ValidationRes
         })
 
     } catch (error) {
-        logger.error("Error validating templates:", error)
+        logger.error("medusa-plugin-postmark: Error validating templates:", error)
         throw new MedusaError(MedusaError.Types.UNEXPECTED_STATE, `Failed to validate templates: ${error instanceof Error ? error.message : "Unknown error"}`)
     }
 }
