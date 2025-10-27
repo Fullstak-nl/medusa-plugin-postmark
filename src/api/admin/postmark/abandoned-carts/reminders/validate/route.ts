@@ -4,6 +4,7 @@ import { ABANDONED_CART_MODULE } from "../../../../../../modules/abandoned-cart"
 import { ValidationResponse, ValidationResult } from "../../../../../../types/validation"
 import { MedusaError } from "@medusajs/framework/utils"
 import { Temporal } from "temporal-polyfill"
+import { CartDTO, CustomerDTO } from "@medusajs/framework/types"
 
 export async function POST(req: MedusaRequest, res: MedusaResponse<ValidationResponse>) {
     const logger = req.scope.resolve("logger")
@@ -25,18 +26,23 @@ export async function POST(req: MedusaRequest, res: MedusaResponse<ValidationRes
         const { Templates: templates } = await postmarkModuleService.getTemplates({ count: 500 })
 
         // Create mock notification data for each schedule
-        const mockCartsGrouped = schedules.map((schedule) => [
-            {
-                delay: Temporal.Duration.from(schedule.delays_iso[0]).total({ unit: "hours", relativeTo: Temporal.Now.plainDateISO() }),
-                template: schedule.template_id,
-                schedule
-            },
-            [mockCart]
-        ])
+        const carts = [{
+            cart: mockCart,
+            reminders: schedules.flatMap((schedule) =>
+                schedule.delays_iso.map(delayIso => (
+                    {
+                        delay: Temporal.Duration.from(delayIso),
+                        delayIso,
+                        template: schedule.template_id,
+                        schedule
+                    }
+                ))
+            )
+        }]
 
         // Run the notification data workflow with mock data
         const { result } = await notificationDataWorkflow(req.scope).run({
-            input: { carts: mockCartsGrouped as any }
+            input: { carts }
         })
 
         const notificationData = result.notificationData
@@ -148,8 +154,7 @@ const filterMissing = (suggested: Record<string, any>, provided: Record<string, 
     return missing
 }
 
-const mockCart: Record<string, any> = {
-    id: "cart_mock_123",
+const mockCart = {
     email: "customer@example.com",
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -183,4 +188,4 @@ const mockCart: Record<string, any> = {
             thumbnail: "https://via.placeholder.com/150"
         }
     ]
-}
+} as unknown as CartDTO & { customer: CustomerDTO }

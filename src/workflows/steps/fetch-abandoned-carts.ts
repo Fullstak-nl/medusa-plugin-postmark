@@ -45,6 +45,32 @@ function shouldSendReminder(
   const sentNotification = getSentNotification(cart, schedule.id, delayIso)
 
   if (!sentNotification) {
+    // If reset_on_cart_update is true and the cart has been updated since any previous send, allow sending all reminders again (including missed ones)
+    if (schedule.reset_on_cart_update) {
+      // Check if any notification for this schedule was sent before
+      const tracking = (typeof cart.metadata?.abandoned_cart_tracking === 'object' && cart.metadata?.abandoned_cart_tracking !== null)
+        ? ((cart.metadata.abandoned_cart_tracking as any).sent_notifications || {})
+        : {}
+      const schedulePrefix = `${schedule.id}:`
+      let anySent = false
+      let lastCartReferenceAtSend = null
+      for (const key of Object.keys(tracking)) {
+        if (key.startsWith(schedulePrefix)) {
+          anySent = true
+          const notif = tracking[key]
+          if (!lastCartReferenceAtSend || notif.cart_reference_at_send > lastCartReferenceAtSend) {
+            lastCartReferenceAtSend = notif.cart_reference_at_send
+          }
+        }
+      }
+      if (anySent && lastCartReferenceAtSend) {
+        // If cart has been updated since last send, allow sending all reminders again
+        const cartReferenceAtSendInstant = Temporal.Instant.from(lastCartReferenceAtSend)
+        if (Temporal.Instant.compare(currentReferenceInstant, cartReferenceAtSendInstant) > 0) {
+          return true
+        }
+      }
+    }
     // Never sent before - this could be a newly added delay
 
     // Prevent sending a notification for a smaller delay if a bigger one was already sent for the same schedule

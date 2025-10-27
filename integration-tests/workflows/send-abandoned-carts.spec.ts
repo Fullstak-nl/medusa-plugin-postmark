@@ -448,6 +448,86 @@ medusaIntegrationTestRunner({
           expect(updatedCarts2.length).toEqual(1)
         })
 
+        it("should resend all reminders after update if cycle is reset and some were missed", async () => {
+          const abandonedCartModule = appContainer.resolve(ABANDONED_CART_MODULE)
+          const reminderSchedules = await abandonedCartModule.createReminderSchedules([
+            {
+              enabled: true,
+              delays_iso: ["PT1M", "PT2M", "PT3M"],
+              template_id: "reset-missed-test",
+              reset_on_cart_update: true
+            }
+          ])
+          // Create cart
+          const cart = await createCartWorkflow(appContainer).run({
+            input: {
+              email: "resetmissed@test.com",
+              region_id: region.id,
+              items: [{ title: "Original item", unit_price: 100, quantity: 1 }],
+              sales_channel_id: salesChannel.id
+            }
+          })
+          // Advance time to just after 2nd reminder (missed 1st, eligible for 2nd and 3rd)
+          jest.advanceTimersByTime(2 * 60 * 1000 + 1000);
+          // Run workflow: should send 2nd reminder only
+          let result = await sendAbandonedCartsWorkflow(appContainer).run({
+            input: {
+              reminderSchedules,
+              pagination: { limit: 10, offset: 0 }
+            }
+          })
+          expect(result.result.updatedCarts.length).toEqual(1)
+          let tracking = result.result.updatedCarts[0]?.metadata?.abandoned_cart_tracking
+          expect((tracking as any)?.sent_notifications).toHaveProperty(`${reminderSchedules[0].id}:PT2M`)
+          // Advance to just after 3rd reminder
+          jest.advanceTimersByTime(1 * 60 * 1000 + 1000);
+          result = await sendAbandonedCartsWorkflow(appContainer).run({
+            input: {
+              reminderSchedules,
+              pagination: { limit: 10, offset: 0 }
+            }
+          })
+          expect(result.result.updatedCarts.length).toEqual(1)
+          tracking = result.result.updatedCarts[0]?.metadata?.abandoned_cart_tracking
+          expect((tracking as any)?.sent_notifications).toHaveProperty(`${reminderSchedules[0].id}:PT3M`)
+          // Now update the cart (simulate item update)
+          const cartModuleService = appContainer.resolve(Modules.CART)
+          const lineItems = await cartModuleService.listLineItems({ cart_id: cart.result.id })
+          await cartModuleService.updateLineItems(lineItems[0].id, { quantity: 2 })
+          // Advance time by 1 minute (should trigger 1st reminder again)
+          jest.advanceTimersByTime(1 * 60 * 1000 + 1000);
+          result = await sendAbandonedCartsWorkflow(appContainer).run({
+            input: {
+              reminderSchedules,
+              pagination: { limit: 10, offset: 0 }
+            }
+          })
+          expect(result.result.updatedCarts.length).toEqual(1)
+          tracking = result.result.updatedCarts[0]?.metadata?.abandoned_cart_tracking
+          expect((tracking as any)?.sent_notifications).toHaveProperty(`${reminderSchedules[0].id}:PT1M`)
+          // Advance to 2nd reminder after update
+          jest.advanceTimersByTime(1 * 60 * 1000 + 1000);
+          result = await sendAbandonedCartsWorkflow(appContainer).run({
+            input: {
+              reminderSchedules,
+              pagination: { limit: 10, offset: 0 }
+            }
+          })
+          expect(result.result.updatedCarts.length).toEqual(1)
+          tracking = result.result.updatedCarts[0]?.metadata?.abandoned_cart_tracking
+          expect((tracking as any)?.sent_notifications).toHaveProperty(`${reminderSchedules[0].id}:PT2M`)
+          // Advance to 3rd reminder after update
+          jest.advanceTimersByTime(1 * 60 * 1000 + 1000);
+          result = await sendAbandonedCartsWorkflow(appContainer).run({
+            input: {
+              reminderSchedules,
+              pagination: { limit: 10, offset: 0 }
+            }
+          })
+          expect(result.result.updatedCarts.length).toEqual(1)
+          tracking = result.result.updatedCarts[0]?.metadata?.abandoned_cart_tracking
+          expect((tracking as any)?.sent_notifications).toHaveProperty(`${reminderSchedules[0].id}:PT3M`)
+        })
         it("should reset timer when cart items are updated after first notification", async () => {
           const abandonedCartModule = appContainer.resolve(ABANDONED_CART_MODULE)
           const reminderSchedules = await abandonedCartModule.createReminderSchedules([{
