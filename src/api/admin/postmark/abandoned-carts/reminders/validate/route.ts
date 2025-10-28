@@ -28,15 +28,14 @@ export async function POST(req: MedusaRequest, res: MedusaResponse<ValidationRes
         // Create mock notification data for each schedule
         const carts = [{
             cart: mockCart,
-            reminders: schedules.flatMap((schedule) =>
-                schedule.delays_iso.map(delayIso => (
+            reminders: schedules.flatMap((schedule) => (
                     {
-                        delay: Temporal.Duration.from(delayIso),
-                        delayIso,
+                        delay: Temporal.Duration.from(schedule.delays_iso[0]),
+                        delayIso: schedule.delays_iso[0],
                         template: schedule.template_id,
                         schedule
                     }
-                ))
+                )
             )
         }]
 
