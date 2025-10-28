@@ -2,7 +2,7 @@ import { MedusaRequest, MedusaResponse } from "@medusajs/framework"
 import { Models } from "postmark"
 
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
-    const { limit: count, offset, q, order } = req.query as { q: string, order: string, limit: string, offset: string }
+    const { limit: count, offset, q, order, templateType } = req.query as { q: string, order: string, limit: string, offset: string, templateType: string }
 
     const postmarkModuleService = req.scope.resolve("postmarkModuleService")
     const cache = req.scope.resolve("caching")
@@ -10,7 +10,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     const queryParams: any = {
         count: parseInt(count),
         offset: parseInt(offset),
-        templateType: Models.TemplateTypes.Standard
+        templateType
     }
 
     // Dont use cache if caching module is not enabled

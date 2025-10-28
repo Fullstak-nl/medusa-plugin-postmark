@@ -1,40 +1,47 @@
-import { useQuery } from "@tanstack/react-query"
+import { QueryKey, useQuery, UseQueryOptions } from "@tanstack/react-query"
 import { sdk } from "../lib/sdk"
 import { PostmarkTemplate } from "../../types/templates"
+import { HttpTypes } from "@medusajs/framework/types"
+import { FetchError } from "@medusajs/js-sdk"
 
 type TemplatesResponse = {
     TotalCount: number
     Templates: PostmarkTemplate[]
 }
 
-export const usePostmarkTemplates = (queryParams?: {
-    limit?: number
-    offset?: number
+type QueryInput = HttpTypes.FindParams & {
+    id?: string
     q?: string
-    order?: string
-}) => {
+    templateType?: "Standard" | "Layout"
+}
+
+const POSTMARK_TEMPLATES_QUERY_KEY = "postmark_templates" as const
+
+const postmarkTemplatesQueryKeys = {
+    all: [POSTMARK_TEMPLATES_QUERY_KEY] as const,
+    templates: (query?: Record<string, any>) => [...postmarkTemplatesQueryKeys.all, "templates", query ? { query } : undefined].filter(
+        (k) => !!k
+    ),
+    template: (id: string, query?: Record<string, any>) => [...postmarkTemplatesQueryKeys.templates(), id, query ? { query } : undefined].filter(
+        (k) => !!k
+    )
+}
+
+export const usePostmarkTemplates = (
+    query?: QueryInput,
+    options?: Omit<
+        UseQueryOptions<
+            TemplatesResponse,
+            FetchError,
+            TemplatesResponse,
+            QueryKey
+        >,
+        "queryFn" | "queryKey"
+    >) => {
     const { data, ...rest } = useQuery({
-        queryKey: ["postmark", "templates", queryParams],
-        queryFn: async (): Promise<TemplatesResponse> => {
-            const searchParams = new URLSearchParams()
-
-            if (queryParams?.limit) {
-                searchParams.append("limit", queryParams.limit.toString())
-            }
-            if (queryParams?.offset) {
-                searchParams.append("offset", queryParams.offset.toString())
-            }
-            if (queryParams?.q) {
-                searchParams.append("q", queryParams.q)
-            }
-            if (queryParams?.order) {
-                searchParams.append("order", queryParams.order)
-            }
-
-            return sdk.client.fetch(`/admin/postmark/templates?${searchParams.toString()}`, {
-                method: "GET",
-            })
-        }
+        queryKey: postmarkTemplatesQueryKeys.templates(query),
+        queryFn: () => sdk.admin.postmark.templates.list(query),
+        ...options
     })
     return { ...data, ...rest }
 }

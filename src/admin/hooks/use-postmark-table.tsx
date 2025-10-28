@@ -2,9 +2,10 @@ import { DataTablePaginationState, DataTableSortingState, toast, useDataTable, c
 import { useState, useMemo, useCallback } from "react"
 import { sdk } from "../lib/sdk"
 import { Trash } from "@medusajs/icons"
-import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { PostmarkTemplate } from "../../types/templates"
 import { useTranslation } from "react-i18next"
+import { usePostmarkTemplates } from "./use-postmark-templates"
+import { keepPreviousData } from "@tanstack/react-query"
 
 type UsePostmarkDataTableProps = {
     type: "template" | "layout"
@@ -25,18 +26,14 @@ export const usePostmarkDataTable = ({ type, serverId }: UsePostmarkDataTablePro
 
     const { t } = useTranslation("postmark")
 
-    const queryKey = type === "template" ? "postmark-templates" : "postmark-layouts"
-
-    const { data, isPending, refetch } = useQuery<{ Templates: PostmarkTemplate[], TotalCount: number }>({
-        queryFn: () => sdk.admin.postmark.templates.list({
-            templateType: type === "template" ? "Standard" : "Layout",
-            limit,
-            offset,
-            q: search,
-            order: sorting ? `${sorting.desc ? "-" : ""}${sorting.id}` : undefined,
-        }),
+    const { Templates, TotalCount, isPending, refetch } = usePostmarkTemplates({
+        templateType: type === "template" ? "Standard" : "Layout",
+        limit: limit,
+        offset: offset,
+        q: search,
+        order: sorting ? `${sorting.desc ? "-" : ""}${sorting.id}` : undefined,
+    }, {
         placeholderData: keepPreviousData,
-        queryKey: [[queryKey, limit, offset, search, sorting?.id, sorting?.desc]],
     })
 
     const handleDeleteTemplate = async (templateId: number) => {
@@ -95,9 +92,9 @@ export const usePostmarkDataTable = ({ type, serverId }: UsePostmarkDataTablePro
 
     const table = useDataTable<PostmarkTemplate>({
         columns,
-        data: data?.Templates || [],
+        data: Templates || [],
         getRowId: (row) => row.TemplateId.toString(),
-        rowCount: data?.TotalCount || 0,
+        rowCount: TotalCount || 0,
         isLoading: isPending,
         onRowClick,
         pagination: {
