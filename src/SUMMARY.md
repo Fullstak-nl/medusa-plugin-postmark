@@ -5,5 +5,5 @@
   - [Events](docs/Events.md)
   - [Templates](docs/Templates.md)
   - [Variables](docs/Variables.md)
-  - [Localisation](docs/Localisation.md)
-- [Default templates](docs/Default-templates.md)
+- [Reminder Schedules](docs/Reminder-Schedules.md)
+- [API-Routes](docs/API-Routes.md)

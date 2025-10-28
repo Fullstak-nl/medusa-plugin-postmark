@@ -1,31 +1,21 @@
 # Events
 
-Events can be specified statically, as they are in the above example, or they can be specified dynamically using an `async` function.
+The plugin uses event-driven workflows to automate abandoned cart notifications and template validation. Events are triggered by cart updates, schedule changes, and workflow executions.
 
-For example, if you have an entity tracking email templates created in Postmark, you may use something like this:
+## Main Events
+- **Cart Abandoned**: Triggers the abandoned cart workflow to check for eligible reminders.
+- **Reminder Schedule Updated**: Re-evaluates which carts are eligible for notifications.
+- **Template Validated**: Ensures all required variables are present before sending.
 
-```js
-// get-event-mappings.js
-export async function getEventMappings() {
-  const emailTemplateRepo = getRepository(EmailTemplate);
-  const templates = await emailTemplateRepo.find();
+# Workflows
 
-  const mappings = {};
-  for (const template of templates) {
-    if (template.event) {
-      mappings[template.event] = template.id;
-    }
-  }
+## Abandoned Cart Workflow
+- Fetches eligible carts based on reminder schedules.
+- Determines which reminders should be sent and when.
+- Triggers notification sending using the associated Postmark template.
 
-  return mappings;
-}
-```
+## Notification Data Workflow
+- Prepares the data required for each notification, including template variables.
+- Validates that all required variables are present for the selected template.
 
-```js
-import { getEventMappings } from './get-event-mappings';
-
-{
-  // ...
-  events: getEventMappings,
-}
-```
+These workflows ensure that notifications are sent reliably and only when all conditions are met.
