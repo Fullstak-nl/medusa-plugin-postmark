@@ -2,12 +2,13 @@ import { MedusaRequest, MedusaResponse } from "@medusajs/framework"
 import { Models } from "postmark"
 
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
-    const { limit: count, offset, q, order, templateType } = req.query as { q: string, order: string, limit: string, offset: string, templateType: string }
+    // TODO: query validation
+    const { limit: count, offset, q, order, templateType = Models.TemplateTypes.Standard } = req.query as { q: string, order: string, limit: string, offset: string, templateType: Models.TemplateTypes }
 
     const postmarkModuleService = req.scope.resolve("postmarkModuleService")
     const cache = req.scope.resolve("caching")
 
-    const queryParams: any = {
+    const queryParams = {
         count: parseInt(count),
         offset: parseInt(offset),
         templateType
@@ -22,7 +23,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     }
     if (q)
         templates.Templates = templates.Templates.filter(
-            (template) => template.Name.toLowerCase().includes((q as string).toLowerCase())
+            (template) => template.Name.toLowerCase().includes(q.toLowerCase())
         )
     if (order)
         templates.Templates.sort((a, b) => {
