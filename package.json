@@ -1,6 +1,6 @@
 {
    "name": "medusa-plugin-postmark",
-   "version": "5.0.0-rc",
+   "version": "6.0.0",
    "description": "Postmark notification plugin for MedusaJS",
    "repository": {
       "type": "git",
