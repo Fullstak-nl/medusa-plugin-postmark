@@ -19,7 +19,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     let templates: Models.Templates = cacheKey ? await cache.get({ key: cacheKey }) : await postmarkModuleService.getTemplates(queryParams)
     if (!templates) {
         templates = await postmarkModuleService.getTemplates(queryParams)
-        await cache.set({ key: cacheKey, data: templates })
+        await cache.set({ key: cacheKey, data: templates, tags: ["PostmarkTemplate:list:*"] })
     }
     if (q)
         templates.Templates = templates.Templates.filter(

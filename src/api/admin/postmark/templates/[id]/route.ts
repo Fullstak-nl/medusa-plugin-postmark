@@ -19,8 +19,10 @@ export async function DELETE(req: MedusaRequest, res: MedusaResponse) {
     }
 
     const postmarkModuleService = req.scope.resolve("postmarkModuleService")
+    const cache = req.scope.resolve("caching")
 
     await postmarkModuleService.deleteTemplate(templateId)
+    await cache?.clear({ tags: ["PostmarkTemplate:list:*"] })
 
     res.json({ success: true, message: "Template deleted successfully" })
 }
