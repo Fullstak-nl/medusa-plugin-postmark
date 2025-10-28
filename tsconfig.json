@@ -30,6 +30,7 @@
     "node_modules",
     ".medusa/server",
     ".medusa/admin",
+    "integration-tests",
     "src/admin",
     ".cache"
   ]

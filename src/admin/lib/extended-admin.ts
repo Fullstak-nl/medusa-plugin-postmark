@@ -79,7 +79,11 @@ class Templates {
     constructor(client: Client) {
         this.client = client
     }
-    async list(query?: { offset?: number; limit?: number; id?: string; q?: string }) {
+    async list(query?: HttpTypes.FindParams & {
+        id?: string
+        q?: string
+        templateType?: "Standard" | "Layout"
+    }) {
         return this.client.fetch<{ Templates: PostmarkTemplate[], TotalCount: number, offset: number, limit: number, count: number }>(
             "/admin/postmark/templates",
             {

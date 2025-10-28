@@ -25,17 +25,15 @@ export const usePostmarkDataTable = ({ type, serverId }: UsePostmarkDataTablePro
 
     const { t } = useTranslation("postmark")
 
-    const endpoint = type === "template" ? "/admin/postmark/templates" : "/admin/postmark/layouts"
     const queryKey = type === "template" ? "postmark-templates" : "postmark-layouts"
 
     const { data, isPending, refetch } = useQuery<{ Templates: PostmarkTemplate[], TotalCount: number }>({
-        queryFn: () => sdk.client.fetch(endpoint, {
-            query: {
-                limit,
-                offset,
-                q: search,
-                order: sorting ? `${sorting.desc ? "-" : ""}${sorting.id}` : undefined,
-            }
+        queryFn: () => sdk.admin.postmark.templates.list({
+            templateType: type === "template" ? "Standard" : "Layout",
+            limit,
+            offset,
+            q: search,
+            order: sorting ? `${sorting.desc ? "-" : ""}${sorting.id}` : undefined,
         }),
         placeholderData: keepPreviousData,
         queryKey: [[queryKey, limit, offset, search, sorting?.id, sorting?.desc]],

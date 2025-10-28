@@ -6,10 +6,10 @@ import { ServerClient } from "postmark";
 export default async function postmarkServerLoader({
     container,
     options,
-}: LoaderOptions<{ server_api?: string }>) {
-    if (!options?.server_api) 
+}: LoaderOptions<{ apiKey?: string }>) {
+    if (!options?.apiKey)
         throw new MedusaError(MedusaError.Types.NOT_FOUND, "Postmark API key not provided")
-    
-    const client = new ServerClient(options.server_api)
+
+    const client = new ServerClient(options.apiKey)
     container.register("postmarkClient", asValue(client))
 }
