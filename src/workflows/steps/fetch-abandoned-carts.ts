@@ -35,9 +35,10 @@ function shouldSendReminder(
 
   // Calculate time elapsed since cart's reference timestamp
   const elapsed = now.since(currentReferenceInstant)
+  const currentReferenceDate = Temporal.ZonedDateTime.from(currentReferenceInstant.toZonedDateTimeISO("UTC"))
 
   // Check if enough time has passed for this delay
-  if (Temporal.Duration.compare(elapsed, delay) < 0) {
+  if (Temporal.Duration.compare(elapsed, delay, { relativeTo: currentReferenceDate }) < 0) {
     return false
   }
 
@@ -85,7 +86,7 @@ function shouldSendReminder(
         const sentDelayIso = key.slice(schedulePrefix.length)
         try {
           const sentDelay = Temporal.Duration.from(sentDelayIso)
-          if (Temporal.Duration.compare(sentDelay, delay) > 0) {
+          if (Temporal.Duration.compare(sentDelay, delay, { relativeTo: currentReferenceDate }) > 0) {
             biggerDelaySent = true
             break
           }
@@ -129,7 +130,7 @@ function shouldSendReminder(
 
     if (cartChangedSinceLastSend) {
       // Cart was updated, check if enough time has passed since the update
-      return Temporal.Duration.compare(elapsed, delay) >= 0
+      return Temporal.Duration.compare(elapsed, delay, { relativeTo: currentReferenceDate }) >= 0
     }
   }
 
@@ -152,7 +153,7 @@ export const fetchAbandonedCarts = createStep(
         template: schedule.template_id,
         schedule: schedule
       }))
-    ).sort((a, b) => Temporal.Duration.compare(a.delay, b.delay))
+    ).sort((a, b) => Temporal.Duration.compare(a.delay, b.delay, { relativeTo: Temporal.Now.plainDateTimeISO() }))
 
     if (!reminders.length) {
       return new StepResponse({ carts: [], totalCount: 0 })

@@ -99,7 +99,7 @@ const useColumns = () => {
 
           return (
             <div className="flex flex-wrap gap-1 py-2">
-              {delays_iso.sort((a, b) => Temporal.Duration.compare(a, b)).map((duration, index) => (
+              {delays_iso.sort((a, b) => Temporal.Duration.compare(a, b, { relativeTo: Temporal.Now.plainDateTimeISO() })).map((duration, index) => (
                 <Badge key={index} size="small" color="grey">
                   {formatter.format(Temporal.Duration.from(duration))}
                 </Badge>
